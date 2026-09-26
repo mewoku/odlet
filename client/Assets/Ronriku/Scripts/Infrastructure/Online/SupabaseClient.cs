@@ -36,13 +36,19 @@ namespace Ronriku.Infrastructure.Online
         /// until a public HTTPS backend exists; null/missing = same as <see cref="url"/>.
         /// </summary>
         public string releaseUrl;
+        /// <summary>Public anon key for <see cref="releaseUrl"/> (null = same as anonKey).</summary>
+        public string releaseAnonKey;
 
         public static OnlineConfig Load()
         {
             var asset = Resources.Load<TextAsset>("ronriku-online");
             if (asset == null) return null;
             var config = JsonUtility.FromJson<OnlineConfig>(asset.text);
-            if (!Application.isEditor && !Debug.isDebugBuild && config.releaseUrl != null) config.url = config.releaseUrl;
+            if (!Application.isEditor && !Debug.isDebugBuild && config.releaseUrl != null)
+            {
+                config.url = config.releaseUrl;
+                if (!string.IsNullOrEmpty(config.releaseAnonKey)) config.anonKey = config.releaseAnonKey;
+            }
             if (Application.platform == RuntimePlatform.WebGLPlayer && !string.IsNullOrEmpty(config.webUrl))
                 config.url = config.webUrl == "same-origin" ? Origin(Application.absoluteURL) ?? config.url : config.webUrl;
             return config;

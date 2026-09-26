@@ -1,0 +1,157 @@
+# ODLET production stack for a shared server: self-hosted Supabase subset (Postgres + GoTrue +
+# PostgREST), the wallet-link function (Deno), an nginx gateway and the Next.js site. Nothing is
+# published except the gateway on 127.0.0.1:${GATEWAY_PORT}; the host nginx terminates TLS for
+# odlet.xyz (Cloudflare in front) and proxies to it. See deploy/prod/README.md.
+#
+#   cd deploy/prod && docker compose --env-file .env up -d --build
+#   docker compose --env-file .env --profile tools run --rm publisher     # content publish (cron daily)
+name: odlet
+
+services:
+  db:
+    image: postgres:15.19
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 1g
+
+  auth:
+    image: supabase/gotrue:v2.197.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: ${SITE_URL}/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?search_path=auth
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${SITE_URL}/**
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_DISABLE_SIGNUP: "false"
+      # Players start anonymous (no email, no wallet needed).
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "true"
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_RATE_LIMIT_ANONYMOUS_USERS: "60"
+      GOTRUE_LOG_LEVEL: warn
+    mem_limit: 256m
+
+  rest:
+    image: postgrest/postgrest:v12.2.12
+    restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_DB_MAX_ROWS: "1000"
+    mem_limit: 256m
+
+  functions:
+    image: denoland/deno:alpine-2.5.4
+    restart: unless-stopped
+    working_dir: /functions
+    command: ["run", "--allow-net", "--allow-env", "--allow-read", "wallet-link/index.ts"]
+    environment:
+      SUPABASE_URL: http://gateway:8000
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      WALLET_LINK_DOMAIN: ${DOMAIN}
+      DENO_DIR: /deno-dir
+    volumes:
+      - ../../backend/supabase/functions:/functions:ro
+      - deno-cache:/deno-dir
+    mem_limit: 256m
+
+  db-init:
+    image: postgres:15.19
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_started
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    entrypoint: ["/bin/sh", "/scripts/db-init.sh"]
+    volumes:
+      - ./db-init:/scripts:ro
+      - ../../backend/supabase:/supabase:ro
+
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - auth
+      - rest
+      - functions
+      - web
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "127.0.0.1:${GATEWAY_PORT:-8130}:8000"
+    mem_limit: 128m
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/web.Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: same-origin
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${SITE_URL}
+        NEXT_PUBLIC_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+        NEXT_PUBLIC_MARKET_OPEN: ${NEXT_PUBLIC_MARKET_OPEN:-false}
+        NEXT_PUBLIC_PAYMENT_RECIPIENT: ${NEXT_PUBLIC_PAYMENT_RECIPIENT:-}
+    restart: unless-stopped
+    environment:
+      SUPABASE_INTERNAL_URL: http://gateway:8000
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      MINT_AUTHORITY_SECRET_KEY: ${MINT_AUTHORITY_SECRET_KEY:-}
+      PURCHASE_TAG_SECRET: ${PURCHASE_TAG_SECRET:-}
+    volumes:
+      - ../../web/public/unity:/app/web/public/unity:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/web/.next/cache
+    mem_limit: 512m
+
+  # One-shot content publisher (answer keys, shop shelf, bosses). Run after deploys and daily via cron.
+  publisher:
+    profiles: ["tools"]
+    image: node:24-bookworm-slim
+    working_dir: /repo
+    environment:
+      SUPABASE_URL: http://gateway:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    command: ["sh", "-c", "corepack enable && pnpm install --frozen-lockfile --filter @ronriku/core --filter ./backend && pnpm --filter @ronriku/core build && cd backend && node scripts/publish.ts"]
+    volumes:
+      - ../..:/repo
+    depends_on:
+      - gateway
+
+volumes:
+  db-data:
+  deno-cache:

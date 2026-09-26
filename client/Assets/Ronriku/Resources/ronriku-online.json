@@ -1,8 +1,9 @@
 {
-  "_comment": "url = dev backend (adb reverse). releaseUrl = store builds: empty plays offline until the HTTPS VPS exists, then set it to https://<domain> and the production anon key. webUrl = WebGL on the website (same-origin proxy).",
+  "_comment": "url/anonKey = dev backend (adb reverse). releaseUrl/releaseAnonKey = store builds (https://odlet.xyz, public anon key). webUrl = WebGL on the website (same-origin).",
   "url": "http://127.0.0.1:54321",
   "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
   "timeoutSeconds": 6,
   "webUrl": "same-origin",
-  "releaseUrl": ""
+  "releaseUrl": "https://odlet.xyz",
+  "releaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvZGxldCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwNDYwMjI5LCJleHAiOjIxMDU4MjAyMjl9.Xwc4Vjtjve2V0o3-UIg8FzRmU_g3V_6CRJNMX10Yj2o"
 }
