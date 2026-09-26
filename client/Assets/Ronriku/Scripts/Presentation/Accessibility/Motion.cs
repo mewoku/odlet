@@ -64,7 +64,8 @@ namespace Ronriku.Presentation.Accessibility
         {
             if (_initialised) return;
             _initialised = true;
-            if (GravitySensor.current == null) return;
+            // Browsers expose a "sensor" that fails with NotReadableError on desktops; parallax is phone-only.
+            if (Application.platform == RuntimePlatform.WebGLPlayer || GravitySensor.current == null) return;
             InputSystem.EnableDevice(GravitySensor.current);
             _available = GravitySensor.current.enabled;
         }

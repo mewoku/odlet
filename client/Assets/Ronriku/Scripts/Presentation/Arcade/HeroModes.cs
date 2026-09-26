@@ -74,6 +74,8 @@ namespace Ronriku.Presentation.Arcade
             Add(_hero);
             Input = new SwipeInput(this);
             RegisterCallback<GeometryChangedEvent>(_ => PlaceHero(_heroCell));
+            // Keyboard play (arrows / WASD, e.g. in the browser) works without clicking the board first.
+            RegisterCallback<AttachToPanelEvent>(_ => schedule.Execute(Focus).StartingIn(50));
         }
 
         public float Cell => Mathf.Floor(Mathf.Min(contentRect.width / W, contentRect.height / H));

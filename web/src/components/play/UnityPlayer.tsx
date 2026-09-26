@@ -53,8 +53,12 @@ function UnityFrame({ build }: { build: UnityBuildFiles }) {
   return (
     <div className="flex flex-col items-center gap-4">
       <div
-        className="px-panel relative w-full max-w-[480px] overflow-hidden p-0 md:max-w-[520px]"
-        style={{ aspectRatio: "9 / 19.5", maxHeight: "calc(100dvh - 220px)" }}
+        className="px-panel relative overflow-hidden p-0"
+        // The game is laid out for a 9:19.5 phone. Width follows the available height so the aspect
+        // never breaks (a squashed viewport made battle cards overflow on desktop).
+        style={{ aspectRatio: "9 / 19.5", width: "min(100%, 520px, calc((100dvh - 150px) * 9 / 19.5))", minWidth: "300px" }}
+        // Keyboard (arrows / WASD) goes to the game as soon as it's clicked.
+        onPointerDown={(e) => e.currentTarget.querySelector("canvas")?.focus()}
       >
         <Unity
           unityProvider={unityProvider}
@@ -80,10 +84,11 @@ function UnityFrame({ build }: { build: UnityBuildFiles }) {
           </div>
         )}
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-4">
         <PixelButton variant="secondary" size="sm" onClick={() => requestFullscreen(true)} disabled={!isLoaded}>
           Fullscreen
         </PixelButton>
+        <p className="font-pixel text-[10px] text-muted">CLICK / TAP TO PLAY · ARROWS OR WASD TO MOVE · DRAG TO SWIPE</p>
       </div>
     </div>
   );

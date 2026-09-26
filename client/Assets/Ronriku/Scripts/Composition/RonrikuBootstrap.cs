@@ -53,7 +53,8 @@ namespace Ronriku.Composition
         {
             Application.targetFrameRate = 60;
             if (tuning != null) RonrikuTuning.Current = tuning;
-            Screen.orientation = ScreenOrientation.Portrait;
+            // Browsers can't lock orientation (desktop throws NotSupportedError); the site frames the game.
+            if (Application.platform != RuntimePlatform.WebGLPlayer) Screen.orientation = ScreenOrientation.Portrait;
             _analytics = new LocalAnalyticsService();
             _haptics = new PlatformHapticsService { Enabled = PlayerPrefs.GetInt("ronriku.haptics", 1) == 1 };
             // Without an AudioListener Unity plays nothing at all (music and SFX were silent on device).
