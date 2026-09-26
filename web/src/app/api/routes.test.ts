@@ -4,6 +4,8 @@ import { Keypair } from "@solana/web3.js";
 import { purchasePrepareSchema, purchaseQuoteSchema, purchaseSolBodySchema } from "@/lib/validation";
 import { clientKey, TokenBucket } from "@/lib/server/rateLimit";
 
+process.env.NEXT_PUBLIC_MARKET_OPEN = "true"; // these tests exercise the open marketplace
+
 // Keep the route in "not configured" mode regardless of the developer's .env.local.
 vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
 vi.stubEnv("MINT_AUTHORITY_SECRET_KEY", "");

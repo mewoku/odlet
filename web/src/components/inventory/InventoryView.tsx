@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { publicEnv } from "@/lib/env";
 import Link from "next/link";
 import { PixelButton } from "../ui/PixelButton";
 import { PixelPanel } from "../ui/PixelPanel";
@@ -131,7 +132,7 @@ export function InventoryView() {
                             NFT ↗
                           </PixelButton>
                         ) : (
-                          <PixelButton size="sm" variant="secondary" palette="frost" onClick={() => mint(f)} disabled={demo || busy || !connected} aria-label={`Mint ${f.name} to wallet for ${formatSol(MINT_FEE_LAMPORTS)} SOL`}>
+                          <PixelButton size="sm" variant="secondary" palette="frost" onClick={() => mint(f)} disabled={!publicEnv.marketOpen || demo || busy || !connected} aria-label={`Mint ${f.name} to wallet for ${formatSol(MINT_FEE_LAMPORTS)} SOL`}>
                             Mint
                           </PixelButton>
                         )}

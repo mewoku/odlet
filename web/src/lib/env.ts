@@ -21,6 +21,11 @@ export const publicEnv = {
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "https://odlet.xyz").replace(/\/$/, ""),
   /** Public support / privacy contact shown on /privacy and /terms (store listings require one). */
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "",
+  /**
+   * Marketplace and every SOL purchase (figures, boss entry, mint fee). Off until mainnet launch:
+   * NEXT_PUBLIC_MARKET_OPEN=true turns it on. The API routes enforce the same flag server-side.
+   */
+  marketOpen: process.env.NEXT_PUBLIC_MARKET_OPEN === "true",
 } as const;
 
 export const SOLANA_CLUSTER = "devnet" as const;

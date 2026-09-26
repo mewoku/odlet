@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { publicEnv } from "@/lib/env";
 import { generateFigure } from "@ronriku/core";
 import { PixelButton } from "../ui/PixelButton";
 import { DemoBadge } from "../ui/Badge";
@@ -38,7 +39,7 @@ export function BossesView() {
     <div className="flex flex-col gap-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-[640px] text-[15px] leading-6 text-muted">
-          Three chained puzzles, one timer, one big HP bar. Entry is paid in shards in the game — or with devnet SOL here. Win within the time limit for the raid reward.
+          Three chained puzzles, one timer, one big HP bar. Entry is paid in shards in the game. Win within the time limit for the raid reward.
         </p>
         {demo && <DemoBadge reason={state.status === "ready" ? state.value.reason : undefined} />}
       </div>
@@ -101,7 +102,11 @@ function BossCard({ ev, demo }: { ev: BossEvent; demo: boolean }) {
           <PixelButton href="/play">
             <PixelIcon name="skull" /> {formatShards(ev.entryShards)} ◆ in game
           </PixelButton>
-          {connected ? (
+          {!publicEnv.marketOpen ? (
+            <PixelButton variant="secondary" palette="frost" disabled>
+              SOL entry · coming soon
+            </PixelButton>
+          ) : connected ? (
             <PixelButton variant="secondary" palette="frost" onClick={paySol} disabled={demo || !live || busy}>
               {busy ? "Confirm in wallet…" : `${formatSol(ev.entryLamports)} SOL`}
             </PixelButton>

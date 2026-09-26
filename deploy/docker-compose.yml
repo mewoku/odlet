@@ -16,6 +16,7 @@ services:
         NEXT_PUBLIC_PAYMENT_RECIPIENT: ${PAYMENT_RECIPIENT:-}
         NEXT_PUBLIC_SITE_URL: ${SITE_URL:?set SITE_URL in deploy/.env}
         NEXT_PUBLIC_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+        NEXT_PUBLIC_MARKET_OPEN: ${NEXT_PUBLIC_MARKET_OPEN:-false}
     image: ronriku-web:latest
     restart: unless-stopped
     environment:

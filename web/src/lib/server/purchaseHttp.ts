@@ -27,6 +27,7 @@ export function limited(r: { retryAfterSeconds: number }) {
 export type EnabledConfig = PurchaseConfig & { enabled: true; authoritySecret: Uint8Array; authority: string };
 
 export function purchaseConfig(): EnabledConfig | { enabled: false; reason: string } {
+  if (process.env.NEXT_PUBLIC_MARKET_OPEN !== "true") return { enabled: false, reason: "marketplace coming soon" };
   const c = solConfig();
   if (!c.ok) return { enabled: false, reason: c.reason };
   if (!getServiceSupabase()) return { enabled: false, reason: "SUPABASE_SERVICE_ROLE_KEY missing" };
