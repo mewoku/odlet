@@ -56,7 +56,7 @@ function UnityFrame({ build }: { build: UnityBuildFiles }) {
         className="px-panel relative overflow-hidden p-0"
         // The game is laid out for a 9:19.5 phone. Width follows the available height so the aspect
         // never breaks (a squashed viewport made battle cards overflow on desktop).
-        style={{ aspectRatio: "9 / 19.5", width: "min(100%, 520px, calc((100dvh - 150px) * 9 / 19.5))", minWidth: "300px" }}
+        style={{ aspectRatio: "9 / 19.5", width: "min(100%, 520px, calc((100dvh - 250px) * 9 / 19.5))", minWidth: "300px" }}
         // Keyboard (arrows / WASD) goes to the game as soon as it's clicked.
         onPointerDown={(e) => e.currentTarget.querySelector("canvas")?.focus()}
       >
