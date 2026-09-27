@@ -146,9 +146,10 @@ export function InventoryView() {
         </ul>
       )}
       {!connected && state.status === "ready" && state.value.data.length > 0 && (
-        <p className="flex flex-wrap items-center gap-3 text-[14px] text-muted">
-          Mint to wallet costs {formatSol(MINT_FEE_LAMPORTS)} devnet SOL. <WalletConnect size="sm" />
-        </p>
+        <div className="flex flex-wrap items-center gap-3 text-[14px] text-muted">
+          {/* div, not p: WalletConnect renders a <dialog>, which is invalid inside <p> (hydration error). */}
+          <span>Mint to wallet costs {formatSol(MINT_FEE_LAMPORTS)} devnet SOL.</span> <WalletConnect size="sm" />
+        </div>
       )}
 
       <Modal open={!!open} onClose={() => setOpen(null)} title="Figure" palette="forest">

@@ -5,6 +5,8 @@
  */
 import { DEMO_FIGURES } from "./figures";
 import type { FigureRecord, FriendRow, LeaderboardRow, LeaderboardScope, Listing, Profile, Rarity, Tier } from "../types";
+import { WORLD_PALETTES } from "../palettes";
+import type { ProfileStats } from "../profile";
 
 const RARITY_PRICE: Record<Rarity, number> = { Common: 350, Rare: 900, Epic: 2400, Legendary: 0 };
 
@@ -67,6 +69,7 @@ export function demoProfile(handle: string): Profile {
     shards: 1450,
     streak: 3 + (i % 5),
     bestStreak: 9 + (i % 7),
+    completedDailies: 14 + (i % 9),
     walletAddress: null,
     createdAt: null,
   };
@@ -108,4 +111,26 @@ export function demoBossEvents() {
     { id: "demo-boss-1", name: "PRISM WARDEN", palette: "pattern", entryShards: 150, entryLamports: 10_000_000, rewardShards: 500, timeLimitMs: 300_000, stages: 3, startsAt: new Date(now - day).toISOString(), endsAt: new Date(now + 5 * day).toISOString() },
     { id: "demo-boss-2", name: "EMBER TYRANT", palette: "link", entryShards: 150, entryLamports: 10_000_000, rewardShards: 800, timeLimitMs: 240_000, stages: 3, startsAt: new Date(now + 6 * day).toISOString(), endsAt: new Date(now + 13 * day).toISOString() },
   ];
+}
+
+/** Demo adventure + Daily stats, deterministic per handle (clearly labelled as demo in the UI). */
+export function demoProfileStats(handle: string): ProfileStats {
+  const h = Math.abs([...handle].reduce((a, c) => a * 31 + c.charCodeAt(0), 7));
+  const cleared = [12, 12, 7 + (h % 4), h % 3, 0];
+  const worlds = WORLD_PALETTES.map((w, i) => ({
+    world: i,
+    name: w.name,
+    palette: w.palette,
+    cleared: cleared[i]!,
+    stars: Math.min(cleared[i]! * 3, Math.round(cleared[i]! * (2.2 + ((h >> i) % 5) / 10))),
+    boss: cleared[i] === 12,
+  }));
+  const today = 27;
+  const daily = Array.from({ length: 6 }, (_, k) => ({
+    day: today - k - (k > 3 ? 1 : 0),
+    solved: 3 - ((h >> k) % 3 === 0 ? 1 : 0),
+    points: 520 - k * 23 + ((h >> k) % 90),
+    ratingAfter: 1260 - k * 9,
+  }));
+  return { scope: "full", worlds, daily, completedDailies: 14 + (h % 9), figures: null };
 }

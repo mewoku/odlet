@@ -33,14 +33,15 @@ select is(
       and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'))
       and p.proname not in ('daily_day', 'leaderboard', 'ensure_profile', 'update_profile', 'complete_level',
         'submit_daily', 'buy_figure_shards', 'enter_boss', 'finish_boss', 'list_figure', 'cancel_listing',
-        'buy_listing', 'send_friend_request', 'respond_friend_request', 'remove_friend', 'list_friends')),
+        'buy_listing', 'send_friend_request', 'respond_friend_request', 'remove_friend', 'list_friends',
+        'complete_arcade_level', 'profile_stats')),
   null::text[], 'only allowlisted RPCs are executable by anon/authenticated');
 
 select is(
   (select array_agg(p.proname::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')
-      and p.proname not in ('daily_day', 'leaderboard')),
-  null::text[], 'anon may only call daily_day and leaderboard');
+      and p.proname not in ('daily_day', 'leaderboard', 'profile_stats')),
+  null::text[], 'anon may only call daily_day, leaderboard and profile_stats');
 
 -- Default privileges: objects created by future migrations are closed to clients.
 create function public._tap_probe() returns int language sql as 'select 1';

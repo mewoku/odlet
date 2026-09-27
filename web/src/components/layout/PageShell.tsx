@@ -7,7 +7,7 @@ export function PageShell({ palette, children, wide = false }: { palette: Palett
   return (
     <div data-palette={palette} className="relative">
       <AmbientBackground palette={palette} />
-      <main className={`mx-auto w-full ${wide ? "max-w-[1200px]" : "max-w-[1040px]"} px-4 pt-6 pb-[112px] md:pt-10 md:pb-16`}>{children}</main>
+      <main className={`mx-auto w-full ${wide ? "max-w-[1200px]" : "max-w-[1040px]"} px-4 pt-6 pb-12 md:pt-10 md:pb-16`}>{children}</main>
     </div>
   );
 }

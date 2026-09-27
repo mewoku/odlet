@@ -39,6 +39,8 @@ export interface Profile {
   shards: number;
   streak: number;
   bestStreak: number;
+  /** Lifetime completed Dailies (public column). */
+  completedDailies: number;
   walletAddress: string | null;
   createdAt: string | null;
 }

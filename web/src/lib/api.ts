@@ -7,7 +7,8 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getBrowserSupabase } from "./supabase/client";
-import { demoBossEvents, demoCollection, demoFigures, demoFriends, demoLeaderboard, demoListings, demoProfile } from "./demo/data";
+import { demoBossEvents, demoCollection, demoFigures, demoFriends, demoLeaderboard, demoListings, demoProfile, demoProfileStats } from "./demo/data";
+import { dailyFromRows, worldsFromLevels, worldsFromSummary, type ProfileStats } from "./profile";
 import type { Currency, FigureRecord, FriendRow, LeaderboardRow, LeaderboardScope, Listing, Profile, Rarity, Sourced, Tier } from "./types";
 import { dayNumber, shelfForDay, type ShelfItem } from "./shelf";
 
@@ -18,6 +19,7 @@ const RPC_ERRORS: Record<string, string> = {
   sol_only_item: "Legendaries are devnet-SOL only.",
   unknown_item: "That item is no longer on the shelf.",
   invalid_handle: "Handles are 3–20 letters, numbers or _.",
+  invalid_display_name: "Display names are 1–24 characters.",
   handle_taken: "That handle is taken.",
   figure_not_owned: "You don't own that figure.",
   not_authenticated: "Sign in first.",
@@ -45,12 +47,16 @@ export const RPC = {
     ["respond_friend_request", { p_requester_id: requesterId, p_action: accept ? "accept" : "decline" }] as const,
   setAvatar: (figureId: string) => ["update_profile", { p_avatar_figure_id: figureId }] as const,
   setHandle: (handle: string) => ["update_profile", { p_handle: handle }] as const,
+  updateProfile: (handle: string | null, displayName: string | null) =>
+    ["update_profile", { p_handle: handle, p_display_name: displayName }] as const,
+  /** Migration 20260927000005_profile.sql. */
+  profileStats: (handle: string, days = 7) => ["profile_stats", { p_handle: handle, p_days: days }] as const,
 };
 
 type Row = Record<string, unknown>;
 
 /** Columns granted to anon/authenticated (shards + wallet_address are owner-only via ensure_profile()). */
-const PUBLIC_PROFILE_COLS = "id,handle,display_name,avatar_figure_id,rating,streak,best_streak,created_at";
+const PUBLIC_PROFILE_COLS = "id,handle,display_name,avatar_figure_id,rating,streak,best_streak,completed_dailies,created_at";
 
 function sb(): SupabaseClient {
   const client = getBrowserSupabase();
@@ -144,6 +150,7 @@ export function mapProfile(r: Row, avatarEncoding: string | null = null): Profil
     shards: num(r.shards),
     streak: num(r.streak),
     bestStreak: num(r.best_streak),
+    completedDailies: num(r.completed_dailies),
     walletAddress: str(r.wallet_address),
     createdAt: str(r.created_at),
   };
@@ -380,6 +387,52 @@ export async function fetchPublicProfile(handle: string): Promise<Sourced<{ prof
     },
     () => ({ profile: demoProfile(handle), collection: demoCollection(handle) }),
   );
+}
+
+/**
+ * Adventure + Daily stats for a profile. Uses the public `profile_stats` RPC (aggregates only). If
+ * that RPC is not deployed yet, your own profile falls back to your RLS-readable rows and other
+ * profiles show public columns only (scope "public").
+ */
+export async function fetchProfileStats(
+  handle: string,
+  opts: { isMe: boolean; completedDailies: number; figures: number | null },
+): Promise<Sourced<ProfileStats>> {
+  return withFallback(
+    async (c) => {
+      const [fn, args] = RPC.profileStats(handle);
+      const res = await c.rpc(fn, args);
+      if (!res.error && res.data && typeof res.data === "object") {
+        const d = res.data as Row;
+        return {
+          scope: "full" as const,
+          worlds: worldsFromSummary(d.worlds),
+          daily: dailyFromRows(d.daily),
+          completedDailies: num(d.completed_dailies, opts.completedDailies),
+          figures: d.figures == null ? opts.figures : num(d.figures),
+        };
+      }
+      if (!opts.isMe) return { scope: "public" as const, worlds: worldsFromSummary([]), daily: [], completedDailies: opts.completedDailies, figures: opts.figures };
+      // Own profile: RLS lets the owner read their own level_progress / daily_results rows.
+      const levels = check(await c.from("level_progress").select("world,level,stars")) as Row[];
+      const daily = check(await c.from("daily_results").select("day,solved,points,rating_after").order("day", { ascending: false }).limit(7)) as Row[];
+      return {
+        scope: "full" as const,
+        worlds: worldsFromLevels(levels ?? []),
+        daily: dailyFromRows(daily),
+        completedDailies: opts.completedDailies,
+        figures: opts.figures,
+      };
+    },
+    () => demoProfileStats(handle),
+  );
+}
+
+/** Handle and/or display name (null = unchanged). */
+export async function updateProfile(fields: { handle?: string | null; displayName?: string | null }): Promise<void> {
+  const c = await requireLive();
+  const [fn, args] = RPC.updateProfile(fields.handle ?? null, fields.displayName ?? null);
+  check(await c.rpc(fn, args));
 }
 
 // ---------- friends ----------

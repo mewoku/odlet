@@ -3,6 +3,7 @@ import { Pixelify_Sans, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { BottomNav, SiteHeader } from "@/components/layout/Nav";
+import { SiteFooter } from "@/components/layout/Footer";
 import { PendingPurchases } from "@/components/wallet/PendingPurchases";
 import { headers } from "next/headers";
 import { publicEnv } from "@/lib/env";
@@ -40,6 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteHeader />
           <PendingPurchases />
           <div id="content">{children}</div>
+          <SiteFooter />
           <BottomNav />
         </Providers>
       </body>

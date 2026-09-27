@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// No `new Function` JIT: our page CSP has no 'unsafe-eval', and zod's eval probe otherwise logs a
+// CSP violation in Firefox on every page that ships a schema to the browser.
+z.config({ jitless: true });
+
 /** base58 alphabet (no 0, O, I, l). */
 const BASE58 = /^[1-9A-HJ-NP-Za-km-z]+$/;
 
