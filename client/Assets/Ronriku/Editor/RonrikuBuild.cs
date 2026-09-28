@@ -45,6 +45,9 @@ namespace Ronriku.Editor
         {
             int build = StoreBuildNumber();
             PlayerSettings.Android.bundleVersionCode = build;
+            // Native symbol tables inside the .aab: Play symbolicates crashes/ANRs without a separate upload.
+            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = Unity.Android.Types.DebugSymbolLevel.SymbolTable;
+            UnityEditor.Android.UserBuildSettings.DebugSymbols.format = Unity.Android.Types.DebugSymbolFormat.IncludeInBundle;
             Build("ODLET-play.apk", BuildOptions.None, StoreDefine, appBundle: false);
             Build("ODLET-play.aab", BuildOptions.None, StoreDefine, appBundle: true);
             Debug.Log($"RONRIKU_PLAY_BUILD_OK versionCode={build}");
