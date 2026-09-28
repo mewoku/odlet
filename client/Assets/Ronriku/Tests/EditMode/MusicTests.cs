@@ -56,7 +56,7 @@ namespace Ronriku.Tests
                     Assert.That(stem, Is.Not.Null, $"{track} stem {s}");
                     double bars = stem.Length / exactBar;
                     Assert.That(Math.Abs(bars - Math.Round(bars)), Is.LessThan(1e-6), $"{track} stem {s} whole bars");
-                    Assert.That(Math.Round(bars), Is.EqualTo(s == 2 ? 8 : 4));
+                    Assert.That(Math.Round(bars), Is.EqualTo(s == 2 ? SongRenderJob.BarsHype : SongRenderJob.BarsBase));
                     Assert.That(Math.Abs(stem.Length / exactBar * 4 * 60 / spec.Bpm - stem.Length / (double)SongRenderJob.Rate),
                         Is.LessThan(0.05), $"{track} loop length vs nominal BPM");
                     foreach (float v in stem) Assert.That(float.IsNaN(v) || float.IsInfinity(v), Is.False, $"{track} stem {s} NaN");
@@ -77,7 +77,7 @@ namespace Ronriku.Tests
                     Assert.That(rms, Is.InRange(0.03, 0.35), $"{track} level {level} rms");
                 }
                 report.AppendLine();
-                Assert.That(job.TotalSamples * 4, Is.LessThanOrEqualTo(3.2 * 1024 * 1024), $"{track} memory");
+                Assert.That(job.TotalSamples * 4, Is.LessThanOrEqualTo(6.4 * 1024 * 1024), $"{track} memory");
             }
             UnityEngine.Debug.Log(report.ToString());
         }
@@ -92,6 +92,31 @@ namespace Ronriku.Tests
                 ulong b = Hash(SongRenderJob.RenderAll(SongBook.Get(track)));
                 Assert.That(b, Is.EqualTo(a), $"{track} deterministic");
                 Assert.That(hashes.Add(a), Is.True, $"{track} differs from other tracks");
+            }
+        }
+
+        [Test]
+        public void EveryTrack_HasABSection_ThatIsNotARepeatOfA()
+        {
+            foreach (MusicTrack track in SongBook.All)
+            {
+                SongSpec spec = SongBook.Get(track);
+                Assert.That(spec.Bridge, Is.Not.Null.And.Length.EqualTo(4), $"{track} bridge");
+                var job = Render(track);
+                int half = job.LengthOf(0) / 2;
+                foreach (int stem in new[] { 0, 1 })
+                {
+                    float[] x = job.Stems[stem];
+                    double diff = 0, energy = 0;
+                    for (int i = 0; i < half; i++)
+                    {
+                        double d = x[i] - x[i + half];
+                        diff += d * d;
+                        energy += x[i] * (double)x[i];
+                    }
+                    // A and B share the groove but not the harmony/lines: well over a third of the energy differs
+                    Assert.That(diff, Is.GreaterThan(energy * 0.35), $"{track} stem {stem}: B too close to A");
+                }
             }
         }
 

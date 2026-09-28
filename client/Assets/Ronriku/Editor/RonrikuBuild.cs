@@ -33,6 +33,91 @@ namespace Ronriku.Editor
         [MenuItem("RONRIKU/Build Android (Release)")]
         public static void BuildAndroidRelease() => Build("ODLET.apk", BuildOptions.None);
 
+        /// <summary>Scripting define for App Store / Google Play builds: no crypto in the app (RuntimeConfig.StoreBuild).</summary>
+        public const string StoreDefine = "ODLET_STORE";
+
+        /// <summary>
+        /// Google Play build without Solana features: an .aab for Play (signed with the upload key from
+        /// RONRIKU_KEYSTORE…) plus a matching .apk for direct testing. versionCode = ODLET_BUILD_NUMBER or yyMMddHH.
+        /// </summary>
+        [MenuItem("RONRIKU/Build Google Play (Store, no crypto)")]
+        public static void BuildAndroidStore()
+        {
+            int build = StoreBuildNumber();
+            PlayerSettings.Android.bundleVersionCode = build;
+            Build("ODLET-play.apk", BuildOptions.None, StoreDefine, appBundle: false);
+            Build("ODLET-play.aab", BuildOptions.None, StoreDefine, appBundle: true);
+            Debug.Log($"RONRIKU_PLAY_BUILD_OK versionCode={build}");
+        }
+
+        /// <summary>
+        /// App Store build without Solana features: exports the Xcode project to Builds/iOS/ODLET (archive and
+        /// upload happen on macOS — .github/workflows/ios-testflight.yml). Build number = ODLET_BUILD_NUMBER or yyMMddHH.
+        /// </summary>
+        [MenuItem("RONRIKU/Export iOS (Store, no crypto)")]
+        public static void ExportIOSStore()
+        {
+            Verify();
+            int build = StoreBuildNumber();
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, "com.odlet.game");
+            PlayerSettings.iOS.buildNumber = build.ToString();
+            PlayerSettings.iOS.targetOSVersionString = "15.0";
+            PlayerSettings.iOS.targetDevice = iOSTargetDevice.iPhoneAndiPad;
+            PlayerSettings.iOS.requiresFullScreen = true;
+            PlayerSettings.iOS.appInBackgroundBehavior = iOSAppInBackgroundBehavior.Suspend;
+            PlayerSettings.iOS.hideHomeButton = false;
+            // Signing happens in CI with an App Store Connect API key (automatic signing, cloud-managed certs).
+            PlayerSettings.iOS.appleEnableAutomaticSigning = true;
+            string team = Environment.GetEnvironmentVariable("ODLET_APPLE_TEAM_ID");
+            if (!string.IsNullOrEmpty(team)) PlayerSettings.iOS.appleDeveloperTeamID = team;
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.iOS, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.iOS, ManagedStrippingLevel.High);
+            PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.iOS, Il2CppCodeGeneration.OptimizeSize);
+            PlayerSettings.insecureHttpOption = InsecureHttpOption.NotAllowed;
+            ApplyIOSIcons();
+
+            // ODLET_IOS_OUT: export elsewhere (the Xcode project is several GB before zipping).
+            string output = Environment.GetEnvironmentVariable("ODLET_IOS_OUT");
+            if (string.IsNullOrEmpty(output)) output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../Builds/iOS/ODLET"));
+            if (Directory.Exists(output)) Directory.Delete(output, true);
+            Directory.CreateDirectory(output);
+            var options = new BuildPlayerOptions
+            {
+                scenes = new[] { ScenePath },
+                locationPathName = output,
+                target = BuildTarget.iOS,
+                options = BuildOptions.None,
+                extraScriptingDefines = new[] { StoreDefine },
+            };
+            BuildReport report = BuildPipeline.BuildPlayer(options);
+            if (report.summary.result != BuildResult.Succeeded)
+                throw new BuildFailedException($"iOS export failed: {report.summary.result}");
+            if (!Directory.Exists(Path.Combine(output, "Unity-iPhone.xcodeproj")))
+                throw new BuildFailedException("iOS export produced no Xcode project (is the iOS module installed?)");
+            Debug.Log($"RONRIKU_IOS_EXPORT_OK path={output} build={build}");
+        }
+
+        private static int StoreBuildNumber()
+        {
+            string env = Environment.GetEnvironmentVariable("ODLET_BUILD_NUMBER");
+            if (int.TryParse(env, out int n) && n > 0) return n;
+            return int.Parse(DateTime.UtcNow.ToString("yyMMddHH", System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        /// <summary>Every iOS icon slot from the opaque 1024 master (App Store icons may not have alpha).</summary>
+        private static void ApplyIOSIcons()
+        {
+            RonrikuIcon.TryApply(logSuccess: false);
+            var master = AssetDatabase.LoadAssetAtPath<Texture2D>(RonrikuIcon.IconFolder + "/ronriku-icon-1024.png");
+            if (master == null) throw new BuildFailedException("iOS needs Art/Icon/ronriku-icon-1024.png");
+            foreach (PlatformIconKind kind in PlayerSettings.GetSupportedIconKinds(NamedBuildTarget.iOS))
+            {
+                PlatformIcon[] icons = PlayerSettings.GetPlatformIcons(NamedBuildTarget.iOS, kind);
+                foreach (PlatformIcon icon in icons) icon.SetTexture(master);
+                PlayerSettings.SetPlatformIcons(NamedBuildTarget.iOS, kind, icons);
+            }
+        }
+
         /// <summary>
         /// Browser build embedded by the website (web/public/unity/Build/unity.*). Gzip with the
         /// decompression fallback so any static server works without special headers.
@@ -76,9 +161,10 @@ namespace Ronriku.Editor
             Debug.Log("RONRIKU_SETTINGS_APPLIED");
         }
 
-        private static void Build(string fileName, BuildOptions buildOptions)
+        private static void Build(string fileName, BuildOptions buildOptions, string define = null, bool appBundle = false)
         {
             Verify();
+            EditorUserBuildSettings.buildAppBundle = appBundle;
             // Development builds may talk to the adb-reversed http dev backend; store builds may not.
             PlayerSettings.insecureHttpOption = BackendIsCleartext((buildOptions & BuildOptions.Development) != 0)
                 ? InsecureHttpOption.AlwaysAllowed : InsecureHttpOption.NotAllowed;
@@ -94,11 +180,13 @@ namespace Ronriku.Editor
                 scenes = new[] { ScenePath },
                 locationPathName = output,
                 target = BuildTarget.Android,
-                options = buildOptions
+                options = buildOptions,
+                extraScriptingDefines = define == null ? Array.Empty<string>() : new[] { define },
             };
             BuildReport report = BuildPipeline.BuildPlayer(options);
             if (report.summary.result != BuildResult.Succeeded)
                 throw new BuildFailedException($"Android build failed: {report.summary.result}");
+            EditorUserBuildSettings.buildAppBundle = false;
             Debug.Log($"RONRIKU_ANDROID_BUILD_OK path={output} bytes={new FileInfo(output).Length}");
         }
 

@@ -19,6 +19,18 @@ namespace Ronriku.Composition
 
         public static string Environment => Competitive ? "online" : "local";
 
+        /// <summary>
+        /// App Store / Google Play builds (scripting define ODLET_STORE): no crypto anywhere in the app. Legendary
+        /// figures show as "coming soon" and the player market isn't advertised. Web and Seeker builds keep them.
+        /// Settable so EditMode tests can cover both variants.
+        /// </summary>
+        public static bool StoreBuild { get; set; } =
+#if ODLET_STORE
+            true;
+#else
+            false;
+#endif
+
         /// <summary>Profile storage directory. Null means <c>Application.persistentDataPath</c>.</summary>
         public static string ProfileDirectory { get; set; }
 

@@ -43,6 +43,22 @@ namespace Ronriku.Editor
             UnityEngine.Debug.Log(log.ToString());
         }
 
+        /// <summary>One full hype loop per track, calm (i0) and full (i2): a quick listening pass.</summary>
+        public static string ExportPreview(string dir)
+        {
+            Directory.CreateDirectory(dir);
+            var log = new StringBuilder();
+            foreach (MusicTrack track in SongBook.All)
+            {
+                SongRenderJob job = SongRenderJob.RenderAll(SongBook.Get(track));
+                int samples = job.LengthOf(2);
+                foreach (int level in new[] { 0, 2 })
+                    WriteWav(Path.Combine(dir, $"{track.ToString().ToLowerInvariant()}_i{level}.wav"), job.Mixdown(level, samples));
+                log.Append($"{track} {samples / (double)SongRenderJob.Rate:F1}s; ");
+            }
+            return log.ToString();
+        }
+
         private static long WriteWav(string path, float[] data)
         {
             const int rate = SongRenderJob.Rate;

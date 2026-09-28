@@ -34,11 +34,23 @@ export function PixelProgress({ value, label }: { value: number; label: string }
 }
 
 export function UnityPlayer({ build }: { build: UnityBuildFiles | null }) {
+  // null until checked on the client (no WebGL probe during SSR).
+  const [webgl2, setWebgl2] = useState<boolean | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    try {
+      setWebgl2(!!document.createElement("canvas").getContext("webgl2"));
+    } catch {
+      setWebgl2(false);
+    }
+  }, []);
   if (!build) return <BuildMissing />;
-  return <UnityFrame build={build} />;
+  if (webgl2 === false) return <NoWebGL />;
+  // Remounting (new key) starts a fresh Unity instance after a failed download.
+  return <UnityFrame key={attempt} build={build} onRetry={() => setAttempt((a) => a + 1)} />;
 }
 
-function UnityFrame({ build }: { build: UnityBuildFiles }) {
+function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () => void }) {
   const { unityProvider, isLoaded, loadingProgression, initialisationError, requestFullscreen } = useUnityContext({
     ...build,
     companyName: "ODLET",
@@ -73,6 +85,9 @@ function UnityFrame({ build }: { build: UnityBuildFiles }) {
               <>
                 <p className="font-pixel text-[14px] text-danger">GAME FAILED TO START</p>
                 <p className="text-center text-[14px] text-muted">{String(initialisationError.message ?? initialisationError)}</p>
+                <PixelButton size="sm" onClick={onRetry}>
+                  Try again
+                </PixelButton>
               </>
             ) : (
               <>
@@ -91,6 +106,18 @@ function UnityFrame({ build }: { build: UnityBuildFiles }) {
         <p className="font-pixel text-[10px] text-muted">CLICK / TAP TO PLAY · ARROWS OR WASD TO MOVE · DRAG TO SWIPE</p>
       </div>
     </div>
+  );
+}
+
+function NoWebGL() {
+  return (
+    <PixelPanel accent className="mx-auto flex max-w-[560px] flex-col items-center gap-4 p-6 text-center md:p-10">
+      <p className="font-pixel text-[12px] text-warn uppercase">WebGL 2 unavailable</p>
+      <h2 className="text-[24px] leading-8">This browser can&apos;t run the game.</h2>
+      <p className="text-[15px] leading-6 text-muted">
+        Odlet needs WebGL 2 — current Chrome, Edge, Firefox or Safari 15+. If you&apos;re on one of those, turn on hardware acceleration and reload.
+      </p>
+    </PixelPanel>
   );
 }
 

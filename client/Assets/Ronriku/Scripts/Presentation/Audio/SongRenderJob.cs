@@ -8,11 +8,15 @@ namespace Ronriku.Presentation.Audio
     /// no threads, so it works on WebGL and in EditMode tests. Work is split into small steps so the host can
     /// spread rendering over frames; <see cref="RenderAll"/> runs it synchronously.
     ///
-    /// Stem 0 "base"  (4 bars): kick, light hats, slap/pop bass with dead notes, 7th/9th pad -> intensity 0
-    /// Stem 1 "drive" (4 bars): claps on 2+4, ghost snares, swung 16th hats, disco open hats,
-    ///                          wah clav/guitar stabs, optional chip arp                     -> added at intensity 1
-    /// Stem 2 "hype"  (8 bars): echoed lead (call/response), brass stabs, shaker/cowbell,
-    ///                          crash, riser + fill                                           -> added at intensity 2
+    /// Form: an A section (4 bars on <see cref="SongSpec.Progression"/>) and a B section (4 bars on
+    /// <see cref="SongSpec.Bridge"/>) with its own bass/clav/arp variations and pickup fills, so the loop is
+    /// 8 bars (16 for the hype layer) instead of a 4-bar vamp.
+    ///
+    /// Stem 0 "base"  (8 bars): kick, light hats, slap/pop bass with dead notes, 7th/9th pad -> intensity 0
+    /// Stem 1 "drive" (8 bars): claps on 2+4, ghost snares, swung 16th hats, disco open hats,
+    ///                          wah clav/guitar stabs, optional chip arp, fills into each section -> intensity 1
+    /// Stem 2 "hype" (16 bars): echoed lead (two verses of call/response), brass stabs, shaker/cowbell,
+    ///                          crashes, riser + fill                                         -> added at intensity 2
     /// Each stem is soft-limited to its own ceiling and the ceilings sum to 1.0, so any layer mix peaks below 1.
     /// Every note wraps around the loop end, so decays, echoes and the pump cross the loop point seamlessly.
     /// </summary>
@@ -20,8 +24,9 @@ namespace Ronriku.Presentation.Audio
     {
         public const int Rate = Dsp.Rate;
         public const int StemCount = 3;
-        public const int BarsBase = 4;
-        public const int BarsHype = 8;
+        public const int SectionBars = 4;
+        public const int BarsBase = 8;
+        public const int BarsHype = 16;
         internal static readonly float[] Ceilings = { 0.5f, 0.25f, 0.25f };
 
         private enum Kind { Kick, Hat, OpenHat, Clap, Snare, Shaker, Crash, Tom, Riser, Blip }
@@ -129,7 +134,17 @@ namespace Ronriku.Presentation.Audio
             ComposePerc(ref rng);
         }
 
-        private Chord ChordAt(int bar) => Spec.Progression[((bar % Spec.Progression.Length) + Spec.Progression.Length) % Spec.Progression.Length];
+        /// <summary>True for bars of the B section (bars 4-7 of every 8).</summary>
+        private static bool InBridge(int bar) => ((bar % BarsBase) + BarsBase) % BarsBase >= SectionBars;
+
+        private Chord ChordAt(int bar)
+        {
+            Chord[] prog = InBridge(bar) && Spec.Bridge != null ? Spec.Bridge : Spec.Progression;
+            return prog[((bar % prog.Length) + prog.Length) % prog.Length];
+        }
+
+        /// <summary>Last bar of a section: where turnarounds and pickup fills go.</summary>
+        private static bool SectionEnd(int bar) => bar % SectionBars == SectionBars - 1;
 
         /// <summary>Places pitch class <paramref name="pc"/> in the octave starting at <paramref name="low"/>.</summary>
         private static int Place(int pc, int low) => low + ((pc - low % 12) % 12 + 24) % 12;
@@ -143,7 +158,7 @@ namespace Ronriku.Presentation.Audio
                 {
                     int step = bar * 16 + s;
                     int pos = StepPos(step);
-                    if (g.Kick[bar][s] == 'x')
+                    if (g.Kick[bar % g.Kick.Length][s] == 'x')
                         _kicks.Add(new Note { Start = pos, Vel = s % 4 == 0 ? 1f : 0.85f, Kind = Kind.Kick });
 
                     // base layer: light closed hats
@@ -157,7 +172,16 @@ namespace Ronriku.Presentation.Audio
                         _driveDrums.Add(new Note { Start = pos, Vel = 0.3f, Kind = Kind.Snare });
                     }
                     char gs = g.GhostSnare[s];
-                    if (gs == 'g' || gs == 'x')
+                    bool bigFill = bar == BarsBase - 1 && s >= 12, smallFill = bar == SectionBars - 1 && s >= 14;
+                    if (bigFill || smallFill)
+                    {
+                        // pickup into the next section: a rising snare run (A->B two 16ths, B->A a full beat)
+                        float ramp = bigFill ? (s - 12) / 3f : s - 14;
+                        _driveDrums.Add(new Note { Start = pos, Vel = 0.32f + 0.4f * ramp, Kind = Kind.Snare });
+                        if (bigFill && (s & 1) == 1)
+                            _driveDrums.Add(new Note { Start = pos + StepLen / 2, Vel = 0.22f + 0.3f * ramp, Kind = Kind.Snare });
+                    }
+                    else if (gs == 'g' || gs == 'x')
                         _driveDrums.Add(new Note { Start = pos, Vel = (gs == 'x' ? 0.7f : 0.2f) + rng.Value() * 0.08f, Kind = Kind.Snare });
 
                     if (g.OpenHat[s] == 'x')
@@ -174,7 +198,10 @@ namespace Ronriku.Presentation.Audio
             for (int bar = 0; bar < BarsBase; bar++)
             {
                 Chord chord = ChordAt(bar);
-                string pattern = g.Bass[bar == BarsBase - 1 ? 1 : 0];
+                string pattern = g.Bass[SectionEnd(bar) ? 1 : 0];
+                // B section: every other bar answers with the riff's halves swapped (beats 3-4 first),
+                // which keeps the accents on the beat but changes the line.
+                if (InBridge(bar) && !SectionEnd(bar) && (bar & 1) == 1) pattern = pattern.Substring(8) + pattern.Substring(0, 8);
                 int root = Place((Spec.Tonic + chord.Root) % 12, 38); // D2..C#3: audible on phone speakers
                 int next = Place((Spec.Tonic + ChordAt(bar + 1).Root) % 12, root - 6);
                 for (int s = 0; s < 16; s++)
@@ -243,7 +270,7 @@ namespace Ronriku.Presentation.Audio
             for (int bar = 0; bar < BarsBase; bar++)
             {
                 Chord chord = ChordAt(bar);
-                int[] voicing = StabVoicing(chord, 60);
+                int[] voicing = StabVoicing(chord, InBridge(bar) ? 64 : 60);
                 for (int s = 0; s < 16; s++)
                 {
                     char c = pattern[s];
@@ -279,6 +306,7 @@ namespace Ronriku.Presentation.Audio
                     if (s % 4 == 3) continue; // a gap in every beat keeps the arp from smearing the groove
                     int period = 2 * n2 - 2, k = s % period;
                     int idx = k < n2 ? k : period - k;
+                    if (InBridge(bar)) idx = n2 - 1 - idx; // B section: the arp falls instead of rising
                     int step = bar * 16 + s;
                     _arp.Add(new Note
                     {
@@ -353,7 +381,7 @@ namespace Ronriku.Presentation.Audio
 
         private int ChordDegree(int bar)
         {
-            Chord chord = Spec.Progression[bar % Spec.Progression.Length];
+            Chord chord = ChordAt(bar);
             int pc = chord.Root % 12;
             for (int i = 0; i < 7; i++) if (Spec.Scale[i] == pc) return i;
             int best = 0;
@@ -408,12 +436,20 @@ namespace Ronriku.Presentation.Audio
             var respRhythm = MakeRhythm(ref rng, true);
             var call = PitchPhrase(ref rng, callRhythm, 0, 2);
             var response = PitchPhrase(ref rng, respRhythm, 4, 4);
+            // second verse: a fresh call over the A chords, and the answer climbs higher over B
+            var call2 = PitchPhrase(ref rng, MakeRhythm(ref rng, false), 8, 4);
+            var response2 = PitchPhrase(ref rng, respRhythm, 12, 6);
 
-            // A (bars 0-1), A sequenced over the next chords (2-3), B response (4-5), A with a resolving end (6-7)
+            // verse 1. A: call (0-1), call sequenced over the next chords (2-3); B: response (4-5), call resolving (6-7)
             EmitPhrase(call, 0, false);
             EmitPhrase(call, 2, false);
             EmitPhrase(response, 4, false);
             EmitPhrase(call, 6, true);
+            // verse 2. A: the new call twice; B: the higher answer, then the first call resolves home
+            EmitPhrase(call2, 8, false);
+            EmitPhrase(call2, 10, false);
+            EmitPhrase(response2, 12, false);
+            EmitPhrase(call, 14, true);
         }
 
         private void EmitPhrase(List<MotifNote> phrase, int barOffset, bool resolve)
@@ -443,7 +479,7 @@ namespace Ronriku.Presentation.Audio
             int oct = (int)Math.Floor(degree / 7.0);
             int idx = degree - oct * 7;
             int midi = 12 * (Spec.LeadOctave + 1) + Spec.Tonic + Spec.Scale[idx] + 12 * oct;
-            Chord chord = Spec.Progression[bar % Spec.Progression.Length];
+            Chord chord = ChordAt(bar);
             int pc = ((midi % 12) + 12) % 12;
             foreach (int iv in chord.Tones)
             {
@@ -467,10 +503,11 @@ namespace Ronriku.Presentation.Audio
                 {
                     int step = bar * 16 + s;
                     int pos = StepPos(step);
-                    bool fillZone = bar == BarsHype - 1 && s >= 8;
+                    bool lastBar = bar == BarsHype - 1;
+                    bool fillZone = (lastBar && s >= 8) || (bar == BarsHype / 2 - 1 && s >= 12);
                     if (fillZone)
                     {
-                        float ramp = (s - 8) / 7f;
+                        float ramp = lastBar ? (s - 8) / 7f : (s - 12) / 3f;
                         _perc.Add(new Note { Start = pos, Vel = 0.35f + 0.6f * ramp, Kind = Kind.Snare });
                         if (s == 12 || s == 14) _perc.Add(new Note { Start = pos, Vel = 0.8f, Kind = Kind.Tom, Pitch = s == 12 ? 190f : 140f });
                         continue;
@@ -490,7 +527,9 @@ namespace Ronriku.Presentation.Audio
                 }
             }
             _perc.Add(new Note { Start = 0, Vel = 1f, Kind = Kind.Crash });
-            _perc.Add(new Note { Start = 4 * BarLen, Vel = 0.7f, Kind = Kind.Crash });
+            _perc.Add(new Note { Start = BarsBase * BarLen, Vel = 0.85f, Kind = Kind.Crash });
+            for (int bar = SectionBars; bar < BarsHype; bar += BarsBase)
+                _perc.Add(new Note { Start = bar * BarLen, Vel = 0.6f, Kind = Kind.Crash });
             _perc.Add(new Note { Start = (BarsHype - 1) * BarLen, Len = BarLen, Vel = 1f, Kind = Kind.Riser });
         }
 

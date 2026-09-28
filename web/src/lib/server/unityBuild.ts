@@ -1,6 +1,7 @@
 import "server-only";
 
-import { readdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 export interface UnityBuildFiles {
@@ -31,6 +32,14 @@ export async function findUnityBuild(): Promise<UnityBuildFiles | null> {
   const framework = pick(`${name}.framework.js`);
   const code = pick(`${name}.wasm`);
   if (!data || !framework || !code) return null;
-  const url = (f: string) => `/unity/Build/${encodeURIComponent(f)}`;
+  // Unity names files without content hashes; a build version in the query keeps browsers, Unity's
+  // IndexedDB cache and the CDN from mixing a cached loader/framework with a newer wasm/data.
+  const hash = createHash("sha1");
+  for (const f of [loader, data, framework, code]) {
+    const s = await stat(path.join(BUILD_DIR, f));
+    hash.update(`${f}:${s.size}:${s.mtimeMs};`);
+  }
+  const v = hash.digest("hex").slice(0, 10);
+  const url = (f: string) => `/unity/Build/${encodeURIComponent(f)}?v=${v}`;
   return { loaderUrl: url(loader), dataUrl: url(data), frameworkUrl: url(framework), codeUrl: url(code) };
 }

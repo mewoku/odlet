@@ -65,7 +65,8 @@ namespace Ronriku.Presentation.Audio
         public uint Seed;
         public int Tonic;              // pitch class of the key (0 = C)
         public int[] Scale;            // 7 semitone offsets from the tonic
-        public Chord[] Progression;    // one chord per bar, 4 bars
+        public Chord[] Progression;    // one chord per bar, 4 bars: the A section
+        public Chord[] Bridge;         // 4 bars: the B section (its last chord leads back to A); null = repeat A
         public float Swing;            // fraction of a 16th that odd 16ths are delayed; 0.1..0.2 = 55..60 % swing
         public float Pump = 0.5f;      // sidechain depth on the ducked bus
         public float LeadBright = 1f;  // lead filter scaling
@@ -193,6 +194,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.SynthFunk, Bpm = 112, Seed = 0x4D454E55, Tonic = 2, Scale = Dorian,
                         Progression = new[] { Chord.Min9(0), Chord.Dom13(5), Chord.Min9(0), Chord.Dom9(5) },
+                        Bridge = new[] { Chord.Maj7(3), Chord.Dom13(5), Chord.Min7(7), Chord.Maj9(10) },
                         Swing = 0.14f, Pump = 0.4f, LeadBright = 0.75f,
                     };
                     break;
@@ -201,6 +203,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.NuDisco, Bpm = 124, Seed = 0x57310001, Tonic = 0, Scale = Ionian,
                         Progression = new[] { Chord.Maj9(0), Chord.Min9(9), Chord.Min9(2), Chord.Dom13(7) },
+                        Bridge = new[] { Chord.Maj9(5), Chord.Min7(4), Chord.Min9(9), Chord.Dom13(7) },
                         Swing = 0.1f, Pump = 0.5f,
                     };
                     break;
@@ -209,6 +212,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.GFunk, Bpm = 104, Seed = 0x57320002, Tonic = 9, Scale = Dorian,
                         Progression = new[] { Chord.Min9(0), Chord.Dom9(5), Chord.Min9(0), Chord.Min7(7) },
+                        Bridge = new[] { Chord.Maj7(3), Chord.Maj7(10), Chord.Dom9(5), Chord.Min7(7) },
                         Swing = 0.2f, Pump = 0.3f, Lead = LeadVoice.Whine, LeadOctave = 5, WahQ = 5f,
                     };
                     break;
@@ -217,6 +221,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.JazzFunk, Bpm = 114, Seed = 0x57330003, Tonic = 2, Scale = Ionian,
                         Progression = new[] { Chord.Min9(2), Chord.Dom13(7), Chord.Maj9(0), Chord.Min9(9) },
+                        Bridge = new[] { Chord.Maj9(5), Chord.Dom9(4), Chord.Min9(9), Chord.Dom13(7) },
                         Swing = 0.16f, Pump = 0.3f, LeadBright = 0.9f,
                     };
                     break;
@@ -225,6 +230,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.ElectroFunk, Bpm = 120, Seed = 0x57340004, Tonic = 4, Scale = HarmonicMinor,
                         Progression = new[] { Chord.Min9(0), Chord.Maj7(8), Chord.Min9(5), Chord.Dom7Sharp9(7) },
+                        Bridge = new[] { Chord.Min9(5), Chord.Maj7(8), Chord.Maj7(1), Chord.Dom7Sharp9(7) },
                         Swing = 0.1f, Pump = 0.45f, LeadBright = 0.8f, LeadOctave = 4, WahQ = 5.5f,
                     };
                     break;
@@ -233,6 +239,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.SynthFunk, Bpm = 126, Seed = 0x57350005, Tonic = 3, Scale = Ionian,
                         Progression = new[] { Chord.Maj9(5), Chord.Dom13(7), Chord.Min7(4), Chord.Min9(9) },
+                        Bridge = new[] { Chord.Min9(2), Chord.Dom13(7), Chord.Maj9(0), Chord.Dom9(0) },
                         Swing = 0.12f, Pump = 0.5f,
                     };
                     break;
@@ -241,6 +248,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.BossFunk, Bpm = 160, Seed = 0x42055001, Tonic = 1, Scale = HarmonicMinor,
                         Progression = new[] { Chord.Min7(0), Chord.Maj7(8), Chord.Min9(5), Chord.Dom7Sharp9(7) },
+                        Bridge = new[] { Chord.Min9(5), Chord.Dom7Sharp9(7), Chord.Min7(0), Chord.Dom7Sharp9(7) },
                         Swing = 0.04f, Pump = 0.55f, WahQ = 3f,
                     };
                     break;
@@ -249,6 +257,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.NuDisco, Bpm = 118, Seed = 0x44A11700, Tonic = 7, Scale = Ionian,
                         Progression = new[] { Chord.Maj9(5), Chord.Min7(4), Chord.Min9(2), Chord.Dom13(7) },
+                        Bridge = new[] { Chord.Min9(9), Chord.Dom9(4), Chord.Min9(2), Chord.Dom13(7) },
                         Swing = 0.16f, Pump = 0.45f, LeadBright = 0.85f,
                     };
                     break;
@@ -257,6 +266,7 @@ namespace Ronriku.Presentation.Audio
                     {
                         Style = GrooveStyle.HeroDisco, Bpm = 140, Seed = 0x4E120140, Tonic = 5, Scale = Dorian,
                         Progression = new[] { Chord.Min9(0), Chord.Dom9(5), Chord.Min9(0), Chord.Dom13(10) },
+                        Bridge = new[] { Chord.Maj7(3), Chord.Dom9(5), Chord.Min9(0), Chord.Dom13(10) },
                         Swing = 0.08f, Pump = 0.55f,
                     };
                     break;

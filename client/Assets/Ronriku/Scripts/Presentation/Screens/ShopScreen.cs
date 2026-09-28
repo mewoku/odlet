@@ -59,7 +59,7 @@ namespace Ronriku.Presentation.Screens
             foreach (ShopItem item in shelf) grid.Add(Card(item));
             scroll.Add(grid);
 
-            if (!Composition.RuntimeConfig.OnlineAvailable) return;
+            if (!Composition.RuntimeConfig.OnlineAvailable || Composition.RuntimeConfig.StoreBuild) return;
             var market = UiFactory.Panel(RonrikuTheme.Pattern.Accent2);
             market.style.marginTop = 16;
             var marketTitle = UiFactory.Heading("PLAYER MARKET", 14, RonrikuTheme.Text);
@@ -92,6 +92,8 @@ namespace Ronriku.Presentation.Screens
             bool owned = _profile.figures.Exists(f => f.id == item.Id);
             Button buy;
             if (owned) buy = UiFactory.FlatButton("OWNED", null);
+            else if (item.SolOnly && Composition.RuntimeConfig.StoreBuild)
+                buy = UiFactory.FlatButton("COMING SOON", () => Toast.Show(this, "LEGENDARY FIGURES ARE COMING SOON", rarity));
             else if (item.SolOnly)
                 buy = Composition.RuntimeConfig.OnlineAvailable
                     ? UiFactory.GlowButton("TEST SOL", () => Toast.Show(this, "EARLY ACCESS: LEGENDARIES ARE SOLANA DEVNET NFTS (TEST SOL). BUY ON THE WEBSITE.", rarity), RonrikuTheme.Boss)
