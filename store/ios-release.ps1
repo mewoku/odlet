@@ -17,7 +17,9 @@ $tag = "ios-build-" + (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmm")
 $zip = Join-Path (Split-Path -Parent $project) "ODLET-ios-xcode.zip"
 if (Test-Path $zip) { Remove-Item $zip }
 Write-Host "Zipping $project ..."
-Compress-Archive -Path (Join-Path $project "*") -DestinationPath $zip -CompressionLevel Optimal
+# bsdtar (ships with Windows) writes forward-slash paths; PS 5.1 Compress-Archive writes backslashes, which unzip rejects
+tar.exe -a -c -f $zip -C $project .
+if ($LASTEXITCODE -ne 0) { throw "zip failed" }
 Write-Host ("Zip: {0:N0} MB" -f ((Get-Item $zip).Length / 1MB))
 
 gh release create $tag $zip --draft --title "iOS build $tag" --notes "Xcode project for TestFlight (draft, deleted after upload)."

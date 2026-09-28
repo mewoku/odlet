@@ -33,6 +33,9 @@ jobs:
         run: |
           gh release download "${{ inputs.release_tag }}" --repo "${{ github.repository }}" --pattern 'ODLET-ios-xcode.zip'
           unzip -q ODLET-ios-xcode.zip -d xcode
+          # zipped on Windows: restore the executable bit Unity's build phases rely on
+          find xcode -name '*.sh' -exec chmod +x {} +
+          chmod -R +x xcode/Il2CppOutputProject/IL2CPP/build xcode/Il2CppOutputProject/IL2CPP/External 2>/dev/null || true
           ls xcode
 
       - name: Select Xcode
