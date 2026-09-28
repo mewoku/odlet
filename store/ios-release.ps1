@@ -13,7 +13,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 $project = if ($Project) { $Project } else { Join-Path $repo "Builds\iOS\ODLET" }
 if (-not (Test-Path (Join-Path $project "Unity-iPhone.xcodeproj"))) { throw "No Xcode project at $project - export it from Unity first." }
 
-$tag = "ios-build-" + (Get-Date -AsUTC -Format "yyyyMMdd-HHmm")
+$tag = "ios-build-" + (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmm")
 $zip = Join-Path (Split-Path -Parent $project) "ODLET-ios-xcode.zip"
 if (Test-Path $zip) { Remove-Item $zip }
 Write-Host "Zipping $project ..."
