@@ -94,7 +94,22 @@ namespace Ronriku.Editor
                 throw new BuildFailedException($"iOS export failed: {report.summary.result}");
             if (!Directory.Exists(Path.Combine(output, "Unity-iPhone.xcodeproj")))
                 throw new BuildFailedException("iOS export produced no Xcode project (is the iOS module installed?)");
+            DeclareNoNonExemptEncryption(Path.Combine(output, "Info.plist"));
             Debug.Log($"RONRIKU_IOS_EXPORT_OK path={output} build={build}");
+        }
+
+        /// <summary>
+        /// Store builds only use HTTPS through iOS, which is exempt from export rules. Saying so in Info.plist
+        /// stops TestFlight holding every build at "Missing Compliance".
+        /// </summary>
+        private static void DeclareNoNonExemptEncryption(string plistPath)
+        {
+            const string key = "<key>ITSAppUsesNonExemptEncryption</key>";
+            string plist = File.ReadAllText(plistPath);
+            if (plist.Contains(key)) return;
+            int end = plist.LastIndexOf("</dict>", StringComparison.Ordinal);
+            if (end < 0) throw new BuildFailedException("Info.plist has no top-level </dict>");
+            File.WriteAllText(plistPath, plist.Insert(end, "  " + key + "\n  <false/>\n"));
         }
 
         private static int StoreBuildNumber()
