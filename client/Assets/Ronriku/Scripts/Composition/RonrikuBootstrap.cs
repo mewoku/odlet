@@ -184,7 +184,7 @@ namespace Ronriku.Composition
                 case AppTab.Shop:
                     return new ShopScreen(_profile, ShopCatalogue.ForDay(Today), () => DailyCalendar.UntilReset(RuntimeConfig.UtcNow), BuyFigure);
                 case AppTab.Me:
-                    return new MeScreen(_profile, Today, _haptics.Enabled, SetHaptics, EquipFigure, Online ? _online : null);
+                    return new MeScreen(_profile, Today, _haptics.Enabled, SetHaptics, EquipFigure, Online ? _online : null, DeleteAccount);
                 default:
                     return new PlayMapScreen(_profile, ShopCatalogue.Build(_profile.Avatar), PlayLevel, CollectShard);
             }
@@ -224,6 +224,36 @@ namespace Ronriku.Composition
             Save();
             _shell.TopBar.Refresh();
             Submit("avatar", () => _online.SetAvatar(figure.id));
+        }
+
+        /// <summary>
+        /// Deletes the online account (when this build has a backend) and the local profile, then starts
+        /// over with a fresh profile. If the server can't be reached nothing is deleted, so the player
+        /// never ends up with a wiped device but a surviving online account.
+        /// </summary>
+        private async void DeleteAccount()
+        {
+            if (_online != null)
+            {
+                try { await _online.DeleteAccount(); }
+                catch (Exception e)
+                {
+                    string code = e is OnlineException oe ? oe.Code : e.Message;
+                    Debug.LogWarning($"RONRIKU online: account deletion failed: {code}");
+                    if (this == null) return;
+                    Toast.Show(_shell, "CONNECT TO THE INTERNET TO DELETE YOUR ACCOUNT", RonrikuTheme.Red);
+                    _shell.ShowTab(AppTab.Me);
+                    return;
+                }
+                if (this == null) return;
+            }
+            _analytics.Track("account_deleted", new Dictionary<string, string>());
+            _profiles.Delete();
+            _profile = _profiles.Load();
+            RuntimeConfig.Competitive = false;
+            _shell.TopBar.Refresh();
+            _shell.ShowTab(AppTab.Play);
+            Toast.Show(_shell, "ACCOUNT DELETED", RonrikuTheme.Teal);
         }
 
         private PurchaseResult BuyFigure(ShopItem item)

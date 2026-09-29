@@ -293,6 +293,20 @@ namespace Ronriku.Infrastructure.Online
         public Task SetAvatar(string figureId) =>
             _client.Rpc("update_profile", new JObject { ["p_avatar_figure_id"] = figureId });
 
+        /// <summary>
+        /// Deletes the server account and everything linked to it (delete_my_account), then forgets the
+        /// session. A device that never signed in has nothing on the server, so there is nothing to call.
+        /// </summary>
+        public async Task DeleteAccount()
+        {
+            if (_client.UserId != null) await _client.Rpc("delete_my_account");
+            _client.SignOut();
+            Connected = false;
+            Handle = null;
+            ServerLevels.Clear();
+            StateChanged?.Invoke();
+        }
+
         /// <summary>{answers, moves, resets} parallel arrays (backend/README.md).</summary>
         private static JObject Proof(IReadOnlyList<TrialOutcome> outcomes)
         {

@@ -9,6 +9,8 @@ namespace Ronriku.Infrastructure.Persistence
     {
         PlayerProfile Load();
         void Save(PlayerProfile profile);
+        /// <summary>Removes the stored profile; the next <see cref="Load"/> starts a fresh one.</summary>
+        void Delete();
     }
 
     /// <summary>
@@ -58,6 +60,12 @@ namespace Ronriku.Infrastructure.Persistence
             File.WriteAllText(temp, JsonUtility.ToJson(profile, true));
             if (File.Exists(_path)) File.Replace(temp, _path, null);
             else File.Move(temp, _path);
+        }
+
+        public void Delete()
+        {
+            File.Delete(_path);
+            File.Delete(_path + ".tmp");
         }
 
         private void Quarantine()

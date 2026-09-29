@@ -56,8 +56,9 @@ be deleted by us.
 
 ## Retention and deletion
 
-Account data is kept while the account exists. To delete the online account and everything linked to
-it, email **hello@odlet.xyz** with your player handle (ME tab); deletion within 30 days. Uninstall to
+Account data is kept while the account exists. To delete the account and everything linked to it, tap
+ME → SETTINGS → DELETE ACCOUNT in the app, use https://odlet.xyz/delete-account, or email
+**hello@odlet.xyz** with your player handle (ME tab; email requests within 30 days). Uninstall to
 remove local data. On-chain data cannot be removed. You may also request a copy or correction of your
 data and complain to your data protection authority.
 
@@ -76,12 +77,13 @@ Changes are posted on this page with a new date. Contact: **hello@odlet.xyz**.
 - `hello@odlet.xyz` is a **placeholder**: create that mailbox (or change it here) before launch, and set
   `NEXT_PUBLIC_CONTACT_EMAIL` (web) / `CONTACT_EMAIL` (deploy/.env; `.env.example` already has it)
   so the web page shows it. Without it the page says "the support contact listed on our app store page".
-- Account deletion is **manual** today (no in-app button, no RPC). To delete a user:
-  `delete from auth.users where id = '<uuid>';` in the Supabase SQL editor (profile, progress, results,
-  friendships, listings, transactions cascade; owned `figures` and past `listings.buyer_id` are set to
-  null, so the figure rows stay but are no longer linked to the person). Find the id with `select id from public.profiles where handle = '<handle>';`.
-  Google Play additionally requires an in-app deletion path **and** a web deletion URL for apps that
-  create accounts — see RELEASE_CHECKLIST.md.
+- Account deletion (2026-09-29): in-app ME → SETTINGS → DELETE ACCOUNT (two taps) and the web page
+  `/delete-account` both call `delete_my_account()` (migration `20260929000006`), which deletes the
+  caller's `auth.users` row; profile, progress, results, friendships, listings and transactions cascade,
+  owned `figures` and past `listings.buyer_id` are set to null. For email requests, run
+  `delete from auth.users where id = '<uuid>';` with the id from
+  `select id from public.profiles where handle = '<handle>';`.
+  Play Console "Data deletion" URL: https://odlet.xyz/delete-account (live once the site is redeployed).
 - Verified against the code on 2026-09-26: `Infrastructure/Analytics/IAnalyticsService.cs` is a local
   logger that drops events in release builds; `ProjectSettings/UnityConnectSettings.asset` has Analytics,
   Crash Reporting, Ads and Performance Reporting disabled; the built APK requests only INTERNET, VIBRATE
@@ -99,4 +101,4 @@ Changes are posted on this page with a new date. Contact: **hello@odlet.xyz**.
 | Financial info / location / contacts / device IDs / email | No | — | — | — |
 
 Encrypted in transit: **yes only once the backend is HTTPS** (today's local build uses http via adb
-reverse). Users can request deletion: yes (by email; add the web deletion URL).
+reverse). Users can request deletion: yes (in app, https://odlet.xyz/delete-account, or email).

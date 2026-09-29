@@ -184,6 +184,13 @@ export async function signOut(): Promise<void> {
   await getBrowserSupabase()?.auth.signOut();
 }
 
+/** Deletes the signed-in account and everything linked to it (delete_my_account), then signs out locally. */
+export async function deleteMyAccount(): Promise<void> {
+  const c = await requireLive();
+  check(await c.rpc("delete_my_account"));
+  await c.auth.signOut({ scope: "local" });
+}
+
 export async function fetchMyProfile(): Promise<Profile | null> {
   if (!(await backendReachable())) return null;
   const uid = await currentUserId();

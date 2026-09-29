@@ -92,6 +92,11 @@ export function SiteFooter() {
                 Terms
               </Link>
             </li>
+            <li>
+              <Link href="/delete-account" className={linkCls}>
+                Delete account
+              </Link>
+            </li>
           </ul>
         </nav>
 

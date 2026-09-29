@@ -112,9 +112,13 @@ export default function PrivacyPage() {
 
         <LegalSection id="retention" title="Keeping and deleting data">
           <p>
-            We keep account data while the account exists. To delete your online account and everything linked to it, contact us at <Contact /> with
-            your player handle (shown on the ME tab). We delete it within 30 days. Local data is removed by uninstalling the app. Data already written to
-            the blockchain cannot be removed.
+            We keep account data while the account exists. To delete your account and everything linked to it, tap ME → SETTINGS → DELETE ACCOUNT in
+            the app, use{" "}
+            <Link className="text-accent underline underline-offset-4 hover:text-text" href="/delete-account">
+              odlet.xyz/delete-account
+            </Link>
+            , or contact us at <Contact /> with your player handle (shown on the ME tab); email requests are handled within 30 days. Local data is also
+            removed by uninstalling the app. Data already written to the blockchain cannot be removed.
           </p>
           <p>You can also ask us for a copy of your data or to correct it, and you can complain to your local data protection authority.</p>
         </LegalSection>

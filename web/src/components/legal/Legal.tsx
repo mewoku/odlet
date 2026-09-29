@@ -40,4 +40,4 @@ export function Contact() {
   );
 }
 
-export const LEGAL_UPDATED = "26 September 2026";
+export const LEGAL_UPDATED = "29 September 2026";

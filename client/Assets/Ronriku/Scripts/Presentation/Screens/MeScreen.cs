@@ -19,7 +19,7 @@ namespace Ronriku.Presentation.Screens
         private readonly VoxelView _hero;
 
         public MeScreen(PlayerProfile profile, int today, bool hapticsEnabled, Action<bool> setHaptics,
-            Action<OwnedFigure> equip, OnlineService online)
+            Action<OwnedFigure> equip, OnlineService online, Action deleteAccount)
         {
             _profile = profile;
             _equip = equip;
@@ -92,7 +92,39 @@ namespace Ronriku.Presentation.Screens
             settings.Add(ToggleRow(Tilt.Available ? "GYRO PARALLAX" : "GYRO  ·  NO SENSOR", MotionSettings.GyroEnabled && Tilt.Available,
                 v => MotionSettings.GyroEnabled = v, Tilt.Available));
             settings.Add(ToggleRow("REDUCED MOTION", MotionSettings.ReducedMotion, v => MotionSettings.ReducedMotion = v));
+            settings.Add(DeleteRow(deleteAccount));
             scroll.Add(settings);
+        }
+
+        /// <summary>Two taps: the first arms it (and disarms after a few seconds), the second deletes.</summary>
+        private static VisualElement DeleteRow(Action deleteAccount)
+        {
+            var row = UiFactory.Row();
+            row.name = "delete-account";
+            row.style.height = 44;
+            var text = UiFactory.Heading("DELETE ACCOUNT", 11, RonrikuTheme.Red);
+            text.style.flexGrow = 1;
+            text.style.unityTextAlign = TextAnchor.MiddleLeft;
+            row.Add(text);
+            bool armed = false;
+            IVisualElementScheduledItem disarm = null;
+            row.RegisterCallback<ClickEvent>(_ =>
+            {
+                if (!armed)
+                {
+                    armed = true;
+                    text.text = "TAP AGAIN: ERASES ALL PROGRESS";
+                    Feedback.Error();
+                    disarm?.Pause();
+                    disarm = row.schedule.Execute(() => { armed = false; text.text = "DELETE ACCOUNT"; }).StartingIn(4000);
+                    return;
+                }
+                disarm?.Pause();
+                text.text = "DELETING…";
+                row.SetEnabled(false);
+                deleteAccount();
+            });
+            return row;
         }
 
         private VisualElement CollectionCard(OwnedFigure owned)
