@@ -114,8 +114,12 @@ namespace Ronriku.Tests
                         diff += d * d;
                         energy += x[i] * (double)x[i];
                     }
-                    // A and B share the groove but not the harmony/lines: well over a third of the energy differs
-                    Assert.That(diff, Is.GreaterThan(energy * 0.35), $"{track} stem {stem}: B too close to A");
+                    // A and B share the groove but not the harmony/lines. Stem 1 (clav/stabs) is mostly harmony, so
+                    // well over a third of its energy differs. Stem 0 also carries the kick and hats, which repeat by
+                    // design (HeroRun is four-on-the-floor), so its bass/pad change shows as a smaller share
+                    // (0.13-0.75 across the book on 2026-09-29); an exact repeat would be ~0.
+                    double min = stem == 0 ? 0.1 : 0.35;
+                    Assert.That(diff, Is.GreaterThan(energy * min), $"{track} stem {stem}: B too close to A");
                 }
             }
         }
