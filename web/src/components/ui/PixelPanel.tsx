@@ -20,7 +20,7 @@ export function PixelPanel({ as: Tag = "div", accent = false, palette, padded = 
 export function SectionTitle({ kicker, title, className = "" }: { kicker?: string; title: string; className?: string }) {
   return (
     <div className={`mb-4 ${className}`}>
-      {kicker && <p className="font-pixel text-[12px] leading-4 text-accent">{kicker}</p>}
+      {kicker && <p className="font-label text-[13px] leading-4 text-accent">{kicker}</p>}
       <h2 className="text-[24px] leading-8 text-text sm:text-[32px] sm:leading-10">{title}</h2>
     </div>
   );

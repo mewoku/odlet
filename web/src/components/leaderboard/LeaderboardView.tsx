@@ -56,7 +56,7 @@ export function LeaderboardView({ scopes = ["global", "daily", "friends", "boss"
         <>
           <Podium rows={state.value.data.slice(0, 3)} scope={scope} />
           <ol className="flex flex-col gap-2" aria-label={`${scope} leaderboard`}>
-            <li className="grid grid-cols-[40px_40px_1fr_auto] gap-3 px-3 font-pixel text-[10px] text-muted">
+            <li className="grid grid-cols-[40px_40px_1fr_auto] gap-3 px-3 font-label text-[12px] text-muted">
               <span>#</span>
               <span />
               <span>PLAYER</span>
@@ -77,7 +77,7 @@ export function LeaderboardView({ scopes = ["global", "daily", "friends", "boss"
                     <span className="size-10">{r.avatarEncoding && <VoxelViewer encoding={r.avatarEncoding} size={40} resolution={20} autoRotate={false} interactive={false} label="" />}</span>
                     <span className="truncate text-[16px]">
                       @{r.handle}
-                      {me && <span className="ml-2 font-pixel text-[10px] text-accent">YOU</span>}
+                      {me && <span className="ml-2 font-label text-[12px] text-accent">YOU</span>}
                     </span>
                     <span className="tabular font-pixel text-[16px] text-accent">{scoreText(r, scope)}</span>
                   </Link>
@@ -100,8 +100,8 @@ function Podium({ rows, scope }: { rows: LeaderboardRow[]; scope: LeaderboardSco
         r ? (
           <div key={r.userId} className="flex flex-col items-center gap-1">
             {r.avatarEncoding && <VoxelViewer encoding={r.avatarEncoding} size={i === 1 ? 112 : 88} resolution={i === 1 ? 40 : 32} interactive={false} phase={i} label="" />}
-            <span className="max-w-full truncate text-[13px]">@{r.handle}</span>
-            <span className="tabular font-pixel text-[12px] text-accent">
+            <span className="max-w-full truncate text-[14px]">@{r.handle}</span>
+            <span className="tabular font-label text-[13px] text-accent">
               {scoreText(r, scope)} <span className="text-muted">{SCORE_LABEL[scope].slice(0, 3)}</span>
             </span>
             <div

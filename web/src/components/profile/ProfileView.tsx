@@ -149,12 +149,12 @@ function ProfileBody({
           {profile.avatarEncoding ? (
             <VoxelViewer encoding={profile.avatarEncoding} size={256} resolution={64} rim={tier.color} label={`@${profile.handle}'s avatar`} />
           ) : (
-            <div className="dither-bg px-border grid size-[256px] place-items-center p-6 text-center font-pixel text-[12px] leading-5 text-muted">
+            <div className="dither-bg px-border grid size-[256px] place-items-center p-6 text-center font-label text-[13px] leading-5 text-muted">
               NO AVATAR
-              {isMe && <span className="text-[10px] text-accent">Pick one of your figures</span>}
+              {isMe && <span className="text-[12px] text-accent">Pick one of your figures</span>}
             </div>
           )}
-          {avatar && <p className="-mt-2 font-pixel text-[10px] text-muted uppercase">{avatar.name}</p>}
+          {avatar && <p className="-mt-2 font-label text-[12px] text-muted uppercase">{avatar.name}</p>}
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
@@ -166,12 +166,12 @@ function ProfileBody({
           </div>
           <div className="min-w-0">
             <h1 className="glow-text truncate text-[28px] leading-9 sm:text-[40px] sm:leading-[48px]">{profile.displayName || profile.handle}</h1>
-            <p className="font-pixel text-[12px] leading-4 text-accent">@{profile.handle}</p>
+            <p className="font-label text-[13px] leading-4 text-accent">@{profile.handle}</p>
           </div>
 
           <XpBar level={lvl.level} into={lvl.into} need={lvl.need} progress={lvl.progress} />
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-pixel text-[10px] leading-4 text-muted uppercase">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-label text-[12px] leading-4 text-muted uppercase">
             {since && <span>Member since {since}</span>}
             {profile.walletAddress && <span>Wallet {shortAddress(profile.walletAddress)}</span>}
           </div>
@@ -228,7 +228,7 @@ function ProfileBody({
               <PixelIcon name="lock" size={16} className="mr-2 inline-block align-[-2px]" />
               Adventure progress is private for now.
             </span>
-            {stats.status === "error" && <span className="text-[12px] text-danger">{stats.error}</span>}
+            {stats.status === "error" && <span className="text-[13px] text-danger">{stats.error}</span>}
           </PixelPanel>
         )}
       </section>
@@ -273,7 +273,7 @@ function ProfileBody({
             ))}
           </ul>
         )}
-        {collection.length > 12 && <p className="mt-3 font-pixel text-[10px] text-muted">+{collection.length - 12} MORE</p>}
+        {collection.length > 12 && <p className="mt-3 font-label text-[12px] text-muted">+{collection.length - 12} MORE</p>}
       </section>
     </>
   );
@@ -295,7 +295,7 @@ function XpBar({ level, into, need, progress }: { level: number; into: number; n
   const filled = Math.round(progress * cells);
   return (
     <div>
-      <div className="flex justify-between font-pixel text-[10px] leading-4 text-muted uppercase">
+      <div className="flex justify-between font-label text-[12px] leading-4 text-muted uppercase">
         <span>Level {level}</span>
         <span className="tabular">
           {into} / {need} XP
@@ -324,7 +324,7 @@ function WorldCard({ w }: { w: WorldProgress }) {
   return (
     <li data-palette={w.palette} data-accent={w.cleared > 0 ? "true" : undefined} className="px-panel flex flex-col gap-2 p-3">
       <div className="flex items-center justify-between">
-        <span className="font-pixel text-[10px] text-muted">WORLD {w.world + 1}</span>
+        <span className="font-label text-[12px] text-muted">WORLD {w.world + 1}</span>
         {w.boss ? <Badge color="var(--accent)">Boss down</Badge> : w.cleared === 0 ? <PixelIcon name="lock" size={12} className="text-muted" /> : null}
       </div>
       <h3 className="text-[18px] leading-6 text-accent">{w.name}</h3>
@@ -333,7 +333,7 @@ function WorldCard({ w }: { w: WorldProgress }) {
           <span key={i} className="h-2" style={{ background: i < w.cleared ? (i === LEVELS_PER_WORLD - 1 ? "var(--accent-2)" : "var(--accent)") : "rgb(255 255 255 / 0.07)" }} />
         ))}
       </div>
-      <div className="flex justify-between font-pixel text-[10px] leading-4">
+      <div className="flex justify-between font-label text-[12px] leading-4">
         <span className="tabular text-text">
           {w.cleared}/{LEVELS_PER_WORLD}
           <span className="sr-only"> levels cleared ({Math.round(pct * 100)}%)</span>
@@ -351,7 +351,7 @@ function DailyHistory({ rows }: { rows: DailyEntry[] }) {
     <PixelPanel padded={false}>
       <table className="w-full text-left">
         <thead>
-          <tr className="font-pixel text-[10px] text-muted uppercase">
+          <tr className="font-label text-[12px] text-muted uppercase">
             <th className="px-4 py-3 font-normal">Day</th>
             <th className="px-2 py-3 font-normal">Trials</th>
             <th className="px-2 py-3 text-right font-normal">Points</th>
@@ -364,7 +364,7 @@ function DailyHistory({ rows }: { rows: DailyEntry[] }) {
             const delta = r.ratingAfter != null && older?.ratingAfter != null && older.day === r.day - 1 ? r.ratingAfter - older.ratingAfter : null;
             return (
               <tr key={r.day} className="border-t-2 border-line">
-                <td className="px-4 py-2 font-pixel text-[12px] text-text">#{r.day}</td>
+                <td className="px-4 py-2 font-label text-[13px] text-text">#{r.day}</td>
                 <td className="px-2 py-2">
                   <span className="flex gap-1" aria-label={`${r.solved} of 3 solved`}>
                     {[0, 1, 2].map((k) => (
@@ -379,8 +379,8 @@ function DailyHistory({ rows }: { rows: DailyEntry[] }) {
                     ))}
                   </span>
                 </td>
-                <td className="tabular px-2 py-2 text-right font-pixel text-[12px] text-yellow">{r.points}</td>
-                <td className="tabular hidden px-4 py-2 text-right font-pixel text-[12px] text-text sm:table-cell">
+                <td className="tabular px-2 py-2 text-right font-label text-[13px] text-yellow">{r.points}</td>
+                <td className="tabular hidden px-4 py-2 text-right font-label text-[13px] text-text sm:table-cell">
                   {r.ratingAfter ?? "—"}
                   {delta != null && delta !== 0 && (
                     <span className={`ml-2 ${delta > 0 ? "text-ok" : "text-danger"}`}>

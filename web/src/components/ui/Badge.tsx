@@ -25,7 +25,7 @@ export function Badge({ rarity, color, children, className = "" }: { rarity?: Ra
   const c = rarity ? RARITY_VAR[rarity] : (color ?? "var(--muted)");
   return (
     <span
-      className={`inline-flex h-5 items-center gap-1 px-1.5 font-pixel text-[10px] leading-3 uppercase ${className}`}
+      className={`inline-flex h-5 items-center gap-1 px-1.5 font-label text-[12px] leading-3 uppercase ${className}`}
       style={{
         color: c,
         background: `color-mix(in srgb, ${c} 14%, transparent)`,

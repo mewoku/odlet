@@ -47,7 +47,7 @@ export function SiteHeader() {
                 key={n.href}
                 href={n.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-10 items-center gap-2 px-3 font-pixel text-[12px] uppercase transition-colors ${active ? "text-text" : "text-muted hover:text-text"}`}
+                className={`flex h-10 items-center gap-2 px-3 font-label text-[13px] uppercase transition-colors ${active ? "text-text" : "text-muted hover:text-text"}`}
                 style={active ? { color: n.color, boxShadow: `inset 0 -2px 0 0 ${n.color}` } : undefined}
               >
                 <PixelIcon name={n.icon} size={16} />
@@ -58,18 +58,18 @@ export function SiteHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-3">
           {ready && profile && (
-            <Link href={`/u/${profile.handle}`} className="hidden items-center gap-2 font-pixel text-[12px] text-yellow sm:flex" title="Shards">
+            <Link href={`/u/${profile.handle}`} className="hidden items-center gap-2 font-label text-[13px] text-yellow sm:flex" title="Shards">
               <PixelIcon name="shard" size={16} />
               <span className="tabular">{formatShards(profile.shards)}</span>
             </Link>
           )}
           {ready && error && (
-            <span role="alert" title={error} className="font-pixel text-[10px] text-danger">
+            <span role="alert" title={error} className="font-label text-[12px] text-danger">
               PROFILE ERROR
             </span>
           )}
           {ready && !profile && !error && (
-            <Link href="/login" className="font-pixel text-[12px] uppercase text-muted hover:text-text">
+            <Link href="/login" className="font-label text-[13px] uppercase text-muted hover:text-text">
               {online ? "Sign in" : "Guest"}
             </Link>
           )}
@@ -97,7 +97,7 @@ export function BottomNav() {
               <Link
                 href={n.href}
                 aria-current={active ? "page" : undefined}
-                className="flex h-full flex-col items-center justify-center gap-1 font-pixel text-[10px] uppercase"
+                className="flex h-full flex-col items-center justify-center gap-1 font-label text-[12px] uppercase"
                 style={{ color: active ? n.color : "var(--muted)" }}
               >
                 <span

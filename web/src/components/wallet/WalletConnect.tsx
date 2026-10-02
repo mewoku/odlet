@@ -35,7 +35,7 @@ export function WalletConnect({ size = "md", variant = "secondary" }: { size?: "
         {connecting ? "Connecting…" : "Connect wallet"}
       </PixelButton>
       <Modal open={open} onClose={() => setOpen(false)} title="Connect wallet" palette="frost">
-        <p className="mb-4 text-[14px] leading-5 text-muted">Solana devnet. No real funds are used.</p>
+        <p className="mb-4 text-[15px] leading-5 text-muted">Solana devnet. No real funds are used.</p>
         <ul className="flex flex-col gap-3">
           {[...usable, ...others].map((w) => {
             const ready = usable.includes(w);
@@ -59,13 +59,13 @@ export function WalletConnect({ size = "md", variant = "secondary" }: { size?: "
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={w.adapter.icon} alt="" width={24} height={24} className="pixelated size-6" />
-                  <span className="font-pixel text-[14px] leading-4">{w.adapter.name}</span>
-                  <span className="ml-auto text-[12px] text-muted">{ready ? "Detected" : "Install"}</span>
+                  <span className="font-label text-[15px] leading-4">{w.adapter.name}</span>
+                  <span className="ml-auto text-[13px] text-muted">{ready ? "Detected" : "Install"}</span>
                 </button>
               </li>
             );
           })}
-          {wallets.length === 0 && <li className="text-[14px] text-muted">No wallets found. Install Phantom or Solflare, or open on Seeker.</li>}
+          {wallets.length === 0 && <li className="text-[15px] text-muted">No wallets found. Install Phantom or Solflare, or open on Seeker.</li>}
         </ul>
       </Modal>
     </>

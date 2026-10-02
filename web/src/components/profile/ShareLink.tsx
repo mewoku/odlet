@@ -43,7 +43,7 @@ export function ShareLink({ url, handle }: { url: string; handle: string }) {
 
   return (
     <div className="flex w-full max-w-[520px] flex-col gap-1">
-      <label htmlFor="profile-link" className="font-pixel text-[10px] leading-4 text-muted uppercase">
+      <label htmlFor="profile-link" className="font-label text-[12px] leading-4 text-muted uppercase">
         Profile link
       </label>
       <div className="flex gap-2">
@@ -53,7 +53,7 @@ export function ShareLink({ url, handle }: { url: string; handle: string }) {
           readOnly
           value={url}
           onFocus={(e) => e.currentTarget.select()}
-          className="px-input min-h-10 min-w-0 flex-1 px-3 font-pixel text-[11px] text-muted"
+          className="px-input min-h-10 min-w-0 flex-1 px-3 font-label text-[12px] text-muted"
         />
         <button
           type="button"

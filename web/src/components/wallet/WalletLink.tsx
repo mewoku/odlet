@@ -18,7 +18,7 @@ export function WalletLink() {
 
   if (profile?.walletAddress) {
     return (
-      <p className="font-pixel text-[12px] text-ok">
+      <p className="font-label text-[13px] text-ok">
         WALLET LINKED · {shortAddress(profile.walletAddress)}
       </p>
     );

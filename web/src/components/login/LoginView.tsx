@@ -67,7 +67,7 @@ export function LoginView() {
         {ready && !online && (
           <div className="flex flex-col gap-3">
             <Badge color="var(--warn)">Server offline</Badge>
-            <p className="text-[14px] leading-5 text-muted">The game server isn&apos;t reachable right now, so accounts are unavailable. You can still play the Daily locally in the browser.</p>
+            <p className="text-[15px] leading-5 text-muted">The game server isn&apos;t reachable right now, so accounts are unavailable. You can still play the Daily locally in the browser.</p>
             <PixelButton href="/play">Play offline</PixelButton>
           </div>
         )}
@@ -89,7 +89,7 @@ export function LoginView() {
               void save();
             }}
           >
-            <label htmlFor="handle" className="font-pixel text-[10px] text-muted">
+            <label htmlFor="handle" className="font-label text-[12px] text-muted">
               HANDLE {profile?.handle ? `· CURRENT @${profile.handle}` : ""}
             </label>
             <input
@@ -104,7 +104,7 @@ export function LoginView() {
               aria-invalid={!!err}
               aria-describedby="handle-help"
             />
-            <p id="handle-help" className={`text-[13px] ${err ? "text-danger" : "text-muted"}`}>
+            <p id="handle-help" className={`text-[14px] ${err ? "text-danger" : "text-muted"}`}>
               {err ?? "3–20 letters, numbers or _. Shown on leaderboards."}
             </p>
             <PixelButton type="submit" disabled={busy || handle.length < 3}>
@@ -115,9 +115,9 @@ export function LoginView() {
 
         {ready && online && userId && (
           <div className="flex flex-col gap-3 border-t-2 border-line pt-5">
-            <p className="font-pixel text-[10px] text-muted">WALLET (DEVNET)</p>
+            <p className="font-label text-[12px] text-muted">WALLET (DEVNET)</p>
             <WalletLink />
-            <button className="self-start font-pixel text-[10px] text-muted underline hover:text-text" onClick={() => void signOut().then(refresh)}>
+            <button className="self-start font-label text-[12px] text-muted underline hover:text-text" onClick={() => void signOut().then(refresh)}>
               SIGN OUT
             </button>
           </div>

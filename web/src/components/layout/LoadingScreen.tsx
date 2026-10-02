@@ -23,7 +23,7 @@ export function LoadingScreen({ label = "Loading" }: { label?: string }) {
             <span key={i} className="ld-cell" style={{ animationDelay: `${i * 0.1}s` }} />
           ))}
         </div>
-        <p className="mt-3 font-pixel text-[10px] text-muted uppercase">
+        <p className="mt-3 font-label text-[12px] text-muted uppercase">
           {label}
           <span className="px-blink">_</span>
         </p>
@@ -35,7 +35,7 @@ export function LoadingScreen({ label = "Loading" }: { label?: string }) {
             className="ld-tip absolute inset-0 text-[15px] leading-6 text-muted"
             style={{ animationDelay: `${i * 4}s` }}
           >
-            <span className="font-pixel text-[10px] text-yellow">TIP · </span>
+            <span className="font-label text-[12px] text-yellow">TIP · </span>
             {t}
           </p>
         ))}

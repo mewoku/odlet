@@ -67,7 +67,7 @@ export function FriendsView() {
   return (
     <div className="flex flex-col gap-8">
       <PixelPanel accent className="flex flex-col gap-3 p-4">
-        <label htmlFor="friend-search" className="font-pixel text-[10px] text-muted">
+        <label htmlFor="friend-search" className="font-label text-[12px] text-muted">
           FIND BY HANDLE
         </label>
         <div className="relative">
@@ -88,7 +88,7 @@ export function FriendsView() {
         {results && (
           <div className="flex flex-col gap-2">
             {results.source === "demo" && <DemoBadge reason={results.reason} />}
-            {results.data.length === 0 && <p className="text-[14px] text-muted">No players found.</p>}
+            {results.data.length === 0 && <p className="text-[15px] text-muted">No players found.</p>}
             {results.data.map((p) => (
               <Row key={p.id} handle={p.handle} rating={p.rating} avatar={p.avatarEncoding}>
                 <PixelButton size="sm" onClick={() => add(p.handle)} disabled={results.source === "demo"}>
@@ -141,7 +141,7 @@ export function FriendsView() {
           <div className="flex flex-col gap-2">
             {outgoing.map((f) => (
               <Row key={f.userId} handle={f.handle} rating={f.rating} avatar={f.avatarEncoding}>
-                <span className="font-pixel text-[10px] text-muted">PENDING</span>
+                <span className="font-label text-[12px] text-muted">PENDING</span>
               </Row>
             ))}
           </div>
@@ -157,7 +157,7 @@ function Row({ handle, rating, avatar, children }: { handle: string; rating: num
       <span className="size-12 shrink-0">{avatar && <VoxelViewer encoding={avatar} size={48} resolution={24} autoRotate={false} interactive={false} label="" />}</span>
       <Link href={`/u/${encodeURIComponent(handle)}`} className="min-w-0 flex-1">
         <span className="block truncate text-[16px] hover:text-accent">@{handle}</span>
-        <span className="tabular font-pixel text-[10px] text-muted">RATING {rating}</span>
+        <span className="tabular font-label text-[12px] text-muted">RATING {rating}</span>
       </Link>
       <div className="flex shrink-0 items-center gap-2">{children}</div>
     </div>

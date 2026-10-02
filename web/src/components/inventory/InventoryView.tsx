@@ -71,14 +71,14 @@ export function InventoryView() {
           {profile?.avatarEncoding ? (
             <VoxelViewer encoding={profile.avatarEncoding} size={128} resolution={40} label="Your avatar" />
           ) : (
-            <div className="dither-bg px-border grid size-32 place-items-center font-pixel text-[10px] text-muted">NO AVATAR</div>
+            <div className="dither-bg px-border grid size-32 place-items-center font-label text-[12px] text-muted">NO AVATAR</div>
           )}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="text-[24px] leading-8">{profile ? `@${profile.handle}` : demo ? "Guest (demo)" : "Guest"}</h2>
             {profile && (
-              <Link href={`/u/${profile.handle}`} className="font-pixel text-[10px] text-accent underline">
+              <Link href={`/u/${profile.handle}`} className="font-label text-[12px] text-accent underline">
                 PUBLIC PROFILE
               </Link>
             )}
@@ -146,7 +146,7 @@ export function InventoryView() {
         </ul>
       )}
       {!connected && state.status === "ready" && state.value.data.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 text-[14px] text-muted">
+        <div className="flex flex-wrap items-center gap-3 text-[15px] text-muted">
           {/* div, not p: WalletConnect renders a <dialog>, which is invalid inside <p> (hydration error). */}
           <span>Mint to wallet costs {formatSol(MINT_FEE_LAMPORTS)} devnet SOL.</span> <WalletConnect size="sm" />
         </div>
@@ -210,17 +210,17 @@ function ListModal({ figure, onClose, onDone, onError }: { figure: FigureRecord 
               role="radio"
               aria-checked={currency === c}
               onClick={() => setCurrency(c)}
-              className={`px-border min-h-10 flex-1 font-pixel text-[12px] uppercase ${currency === c ? "bg-accent text-bg-0" : "bg-surface-1 text-muted"}`}
+              className={`px-border min-h-10 flex-1 font-label text-[13px] uppercase ${currency === c ? "bg-accent text-bg-0" : "bg-surface-1 text-muted"}`}
             >
               {c === "shards" ? "Shards ◆" : "Devnet SOL"}
             </button>
           ))}
         </div>
         <label className="flex flex-col gap-2">
-          <span className="font-pixel text-[10px] text-muted">PRICE</span>
+          <span className="font-label text-[12px] text-muted">PRICE</span>
           <input className="px-input" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={currency === "shards" ? "800" : "0.05"} aria-invalid={!!err} />
         </label>
-        {err && <p className="text-[14px] text-danger">{err}</p>}
+        {err && <p className="text-[15px] text-danger">{err}</p>}
         <PixelButton type="submit">List for sale</PixelButton>
       </form>
     </Modal>

@@ -114,11 +114,11 @@ function DailyShelf() {
   return (
     <section aria-label="Daily shelf" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-[720px] text-[14px] leading-5 text-muted">
+        <p className="max-w-[720px] text-[15px] leading-5 text-muted">
           Six figures rotate every UTC day — the same shelf as the game&apos;s SHOP tab. One copy per design. <b className="text-text">Legendaries</b> are devnet-SOL only and mint straight to your wallet as a Metaplex Core NFT.
         </p>
         {profile && (
-          <span className="flex items-center gap-2 font-pixel text-[14px] text-yellow">
+          <span className="flex items-center gap-2 font-label text-[15px] text-yellow">
             <PixelIcon name="shard" /> {formatShards(profile.shards)}
           </span>
         )}
@@ -139,7 +139,7 @@ function DailyShelf() {
               onOpen={() => setOpen(s)}
               footer={
                 <div className="flex flex-col gap-2">
-                  <span className="font-pixel text-[10px] text-muted">
+                  <span className="font-label text-[12px] text-muted">
                     {s.tier}×{s.tier} · SLOT {s.slot + 1}
                   </span>
                   {action(s)}
@@ -188,13 +188,13 @@ function Listings() {
   };
 
   const chip = (active: boolean) =>
-    `px-border min-h-10 px-3 font-pixel text-[12px] uppercase ${active ? "bg-accent text-bg-0" : "bg-surface-1 text-muted hover:text-text"}`;
+    `px-border min-h-10 px-3 font-label text-[13px] uppercase ${active ? "bg-accent text-bg-0" : "bg-surface-1 text-muted hover:text-text"}`;
 
   return (
     <section aria-label="Player listings" className="flex flex-col gap-4">
       <div className="px-panel flex flex-col gap-4 p-4 lg:flex-row lg:flex-wrap lg:items-end">
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 font-pixel text-[10px] text-muted">TIER</legend>
+          <legend className="mb-2 font-label text-[12px] text-muted">TIER</legend>
           <div className="flex gap-2">
             <button className={chip(tier === null)} style={tier === null ? { ["--pb" as string]: "var(--accent)" } : undefined} onClick={() => setTier(null)} aria-pressed={tier === null}>
               All
@@ -207,7 +207,7 @@ function Listings() {
           </div>
         </fieldset>
         <label className="flex flex-col gap-2">
-          <span className="font-pixel text-[10px] text-muted">RARITY</span>
+          <span className="font-label text-[12px] text-muted">RARITY</span>
           <select className="px-input" value={rarity ?? ""} onChange={(e) => setRarity((e.target.value || null) as Rarity | null)}>
             <option value="">Any</option>
             {RARITIES.map((r) => (
@@ -216,7 +216,7 @@ function Listings() {
           </select>
         </label>
         <label className="flex flex-col gap-2">
-          <span className="font-pixel text-[10px] text-muted">CURRENCY</span>
+          <span className="font-label text-[12px] text-muted">CURRENCY</span>
           <select className="px-input" value={currency ?? ""} onChange={(e) => setCurrency((e.target.value || null) as Currency | null)}>
             <option value="">Any</option>
             <option value="shards">Shards ◆</option>
@@ -224,7 +224,7 @@ function Listings() {
           </select>
         </label>
         <label className="flex flex-col gap-2">
-          <span className="font-pixel text-[10px] text-muted">MAX ◆</span>
+          <span className="font-label text-[12px] text-muted">MAX ◆</span>
           <input
             className="px-input w-32"
             inputMode="numeric"
@@ -237,7 +237,7 @@ function Listings() {
           />
         </label>
         <label className="flex flex-col gap-2">
-          <span className="font-pixel text-[10px] text-muted">SORT</span>
+          <span className="font-label text-[12px] text-muted">SORT</span>
           <select className="px-input" value={sort} onChange={(e) => setSort(e.target.value as ListingFilters["sort"])}>
             <option value="new">Newest</option>
             <option value="price_asc">Price ↑</option>
@@ -263,10 +263,10 @@ function Listings() {
                 onOpen={() => setOpen(l)}
                 footer={
                   <div className="flex items-center justify-between gap-2">
-                    <span className="tabular font-pixel text-[12px] text-yellow">
+                    <span className="tabular font-label text-[13px] text-yellow">
                       {l.priceShards != null ? formatPrice(l.priceShards, "shards") : formatPrice(l.priceLamports ?? 0, "sol")}
                     </span>
-                    <span className="truncate text-[12px] text-muted">@{l.sellerHandle}</span>
+                    <span className="truncate text-[13px] text-muted">@{l.sellerHandle}</span>
                   </div>
                 }
               />
@@ -278,7 +278,7 @@ function Listings() {
       <Modal open={!!open} onClose={() => setOpen(null)} title="Figure" palette="pattern">
         {open && (
           <FigureDetail figure={open.figure}>
-            <p className="text-[14px] text-muted">
+            <p className="text-[15px] text-muted">
               Listed by <span className="text-text">@{open.sellerHandle}</span>
             </p>
             <div className="flex flex-wrap items-center gap-3">

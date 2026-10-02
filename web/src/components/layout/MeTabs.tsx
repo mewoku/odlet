@@ -23,7 +23,7 @@ export function MeTabs() {
             key={i.href}
             href={i.href}
             aria-current={active ? "page" : undefined}
-            className={`px-border flex min-h-10 shrink-0 items-center px-4 font-pixel text-[12px] uppercase ${active ? "bg-accent text-bg-0" : "bg-surface-1 text-muted hover:text-text"}`}
+            className={`px-border flex min-h-10 shrink-0 items-center px-4 font-label text-[13px] uppercase ${active ? "bg-accent text-bg-0" : "bg-surface-1 text-muted hover:text-text"}`}
             style={active ? ({ "--pb": "var(--accent)" } as React.CSSProperties) : undefined}
           >
             {i.label}

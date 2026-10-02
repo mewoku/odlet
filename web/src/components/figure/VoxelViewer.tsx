@@ -143,7 +143,7 @@ export function VoxelViewer({
         className={`pixelated relative block h-full w-full ${interactive ? "cursor-grab touch-pan-y active:cursor-grabbing" : ""}`}
       />
       {failed && (
-        <div className="absolute inset-0 grid place-items-center text-center font-pixel text-[10px] text-muted">
+        <div className="absolute inset-0 grid place-items-center text-center font-label text-[12px] text-muted">
           NO 3D
         </div>
       )}

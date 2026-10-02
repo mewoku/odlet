@@ -14,7 +14,7 @@ export function PixelProgress({ value, label }: { value: number; label: string }
   const filled = Math.round(Math.max(0, Math.min(1, value)) * segments);
   return (
     <div className="w-full max-w-[360px]" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value * 100)}>
-      <div className="mb-2 flex justify-between font-pixel text-[12px] text-muted">
+      <div className="mb-2 flex justify-between font-label text-[13px] text-muted">
         <span>{label}</span>
         <span className="tabular text-accent">{Math.round(value * 100)}%</span>
       </div>
@@ -83,8 +83,8 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 p-6">
             {initialisationError ? (
               <>
-                <p className="font-pixel text-[14px] text-danger">GAME FAILED TO START</p>
-                <p className="text-center text-[14px] text-muted">{String(initialisationError.message ?? initialisationError)}</p>
+                <p className="font-label text-[15px] text-danger">GAME FAILED TO START</p>
+                <p className="text-center text-[15px] text-muted">{String(initialisationError.message ?? initialisationError)}</p>
                 <PixelButton size="sm" onClick={onRetry}>
                   Try again
                 </PixelButton>
@@ -93,7 +93,7 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
               <>
                 <p className="font-pixel text-[24px] text-teal">ODLET</p>
                 <PixelProgress value={loadingProgression} label="LOADING" />
-                <p className="px-blink font-pixel text-[10px] text-muted">BOOTING WEBGL…</p>
+                <p className="px-blink font-label text-[12px] text-muted">BOOTING WEBGL…</p>
               </>
             )}
           </div>
@@ -103,7 +103,7 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
         <PixelButton variant="secondary" size="sm" onClick={() => requestFullscreen(true)} disabled={!isLoaded}>
           Fullscreen
         </PixelButton>
-        <p className="font-pixel text-[10px] text-muted">CLICK / TAP TO PLAY · ARROWS OR WASD TO MOVE · DRAG TO SWIPE</p>
+        <p className="font-label text-[12px] text-muted">CLICK / TAP TO PLAY · ARROWS OR WASD TO MOVE · DRAG TO SWIPE</p>
       </div>
     </div>
   );
@@ -112,7 +112,7 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
 function NoWebGL() {
   return (
     <PixelPanel accent className="mx-auto flex max-w-[560px] flex-col items-center gap-4 p-6 text-center md:p-10">
-      <p className="font-pixel text-[12px] text-warn uppercase">WebGL 2 unavailable</p>
+      <p className="font-label text-[13px] text-warn uppercase">WebGL 2 unavailable</p>
       <h2 className="text-[24px] leading-8">This browser can&apos;t run the game.</h2>
       <p className="text-[15px] leading-6 text-muted">
         Odlet needs WebGL 2 — current Chrome, Edge, Firefox or Safari 15+. If you&apos;re on one of those, turn on hardware acceleration and reload.
@@ -127,7 +127,7 @@ function BuildMissing() {
     <PixelPanel accent className="mx-auto flex max-w-[560px] flex-col items-center gap-6 p-6 text-center md:p-10">
       <VoxelViewer encoding={fig.encoding} size={160} resolution={48} label="Waiting figure" />
       <div>
-        <p className="font-pixel text-[12px] text-warn uppercase">
+        <p className="font-label text-[13px] text-warn uppercase">
           <PixelIcon name="lock" size={12} className="mr-2 inline" />
           Build not available yet
         </p>

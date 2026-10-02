@@ -9,7 +9,7 @@ export function MarketComingSoon() {
   const showcase = demoFigures.slice(0, 3);
   return (
     <PixelPanel accent className="flex flex-col items-center gap-6 p-8 text-center">
-      <p className="font-pixel text-[12px] text-yellow uppercase">Coming soon</p>
+      <p className="font-label text-[13px] text-yellow uppercase">Coming soon</p>
       <h2 className="text-[28px] leading-9 text-accent md:text-[36px] md:leading-[44px]">The figure market opens soon</h2>
       <p className="max-w-[560px] text-[15px] leading-6 text-muted">
         Trading voxel figures and buying them with SOL open with our launch. Until then, every figure is earned in the game:

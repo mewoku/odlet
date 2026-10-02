@@ -59,7 +59,7 @@ export function ProfileEditor({ profile, onDone }: { profile: Profile; onDone: (
       }}
     >
       <div className="flex flex-col gap-2">
-        <label htmlFor="edit-handle" className="font-pixel text-[10px] text-muted uppercase">
+        <label htmlFor="edit-handle" className="font-label text-[12px] text-muted uppercase">
           Handle
         </label>
         <div className="flex items-center gap-2">
@@ -75,24 +75,24 @@ export function ProfileEditor({ profile, onDone }: { profile: Profile; onDone: (
             aria-describedby="edit-handle-hint"
           />
         </div>
-        <p id="edit-handle-hint" className="text-[12px] leading-4 text-muted">
+        <p id="edit-handle-hint" className="text-[13px] leading-4 text-muted">
           3–20 letters, numbers or _. Changing it changes your profile link.
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="edit-name" className="font-pixel text-[10px] text-muted uppercase">
+        <label htmlFor="edit-name" className="font-label text-[12px] text-muted uppercase">
           Display name
         </label>
         <input id="edit-name" className="px-input" value={displayName} maxLength={24} onChange={(e) => setDisplayName(e.target.value)} />
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 font-pixel text-[10px] text-muted uppercase">Avatar</legend>
+        <legend className="mb-2 font-label text-[12px] text-muted uppercase">Avatar</legend>
         {inv.status === "loading" && <p className="text-muted">Loading your figures…</p>}
         {inv.status === "error" && <p className="text-danger">{inv.error}</p>}
         {inv.status === "ready" && owned.length === 0 && (
-          <p className="text-[14px] text-muted">
+          <p className="text-[15px] text-muted">
             No figures yet — get one in the shop, then equip it here.
           </p>
         )}
@@ -112,7 +112,7 @@ export function ProfileEditor({ profile, onDone }: { profile: Profile; onDone: (
                     style={{ ["--pb" as string]: selected ? "var(--yellow)" : "var(--line)", background: selected ? "color-mix(in srgb, var(--yellow) 12%, var(--bg-0))" : undefined }}
                   >
                     <VoxelViewer encoding={f.encoding} size={72} resolution={36} interactive={false} autoRotate={selected} phase={i} rim={rarityColor(f.rarity)} label={f.name} />
-                    <span className="w-full truncate font-pixel text-[9px] leading-3 text-muted">{f.name || "—"}</span>
+                    <span className="w-full truncate font-label text-[12px] leading-3 text-muted">{f.name || "—"}</span>
                   </button>
                 </li>
               );
@@ -122,7 +122,7 @@ export function ProfileEditor({ profile, onDone }: { profile: Profile; onDone: (
       </fieldset>
 
       {err && (
-        <p role="alert" className="text-[14px] text-danger">
+        <p role="alert" className="text-[15px] text-danger">
           {err}
         </p>
       )}

@@ -5,9 +5,9 @@ export function StatTile({ label, value, hint, tone }: { label: string; value: R
   const color = tone === "yellow" ? "text-yellow" : tone === "accent" ? "text-accent" : "text-text";
   return (
     <div className="px-panel flex min-w-0 flex-col gap-1 p-3">
-      <span className="font-pixel text-[10px] leading-3 uppercase text-muted">{label}</span>
+      <span className="font-label text-[12px] leading-3 uppercase text-muted">{label}</span>
       <span className={`tabular font-pixel text-[20px] leading-6 ${color}`}>{value}</span>
-      {hint && <span className="text-[12px] leading-4 text-muted">{hint}</span>}
+      {hint && <span className="text-[13px] leading-4 text-muted">{hint}</span>}
     </div>
   );
 }

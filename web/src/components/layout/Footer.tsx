@@ -18,10 +18,10 @@ const ACCOUNT_LINKS = [
 ] as const;
 
 function ColTitle({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <h2 className={`mb-3 font-pixel text-[10px] leading-4 text-yellow uppercase ${className}`}>{children}</h2>;
+  return <h2 className={`mb-3 font-label text-[12px] leading-4 text-yellow uppercase ${className}`}>{children}</h2>;
 }
 
-const linkCls = "font-pixel text-[12px] leading-4 uppercase text-muted hover:text-text focus-visible:text-text";
+const linkCls = "font-label text-[13px] leading-4 uppercase text-muted hover:text-text focus-visible:text-text";
 
 /** Site-wide pixel footer (rendered once in app/layout.tsx). */
 export function SiteFooter() {
@@ -50,10 +50,10 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-x-6 gap-y-8 px-4 pt-10 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.3fr]">
         <div className="col-span-2 flex flex-col gap-3 sm:col-span-3 lg:col-span-1">
           <Logo size={20} />
-          <p className="font-pixel text-[14px] leading-5 text-teal" style={{ textShadow: "0 2px 0 #135b73" }}>
+          <p className="font-label text-[15px] leading-5 text-teal" style={{ textShadow: "0 2px 0 #135b73" }}>
             SOLVE TO STRIKE
           </p>
-          <p className="max-w-[300px] text-[14px] leading-5 text-muted">Pixel puzzle combat. Every card is a puzzle; every solve is a hit.</p>
+          <p className="max-w-[300px] text-[15px] leading-5 text-muted">Pixel puzzle combat. Every card is a puzzle; every solve is a hit.</p>
         </div>
 
         <nav aria-label="Game">
@@ -113,12 +113,12 @@ export function SiteFooter() {
               ))}
             </ul>
           ) : (
-            <p className="text-[13px] leading-5 text-muted">Channels open soon.</p>
+            <p className="text-[14px] leading-5 text-muted">Channels open soon.</p>
           )}
           {contactEmail && (
             <p className="mt-6 flex flex-col gap-1">
-              <span className="font-pixel text-[10px] text-yellow uppercase">Contact</span>
-              <a href={`mailto:${contactEmail}`} className="break-all text-[14px] leading-5 text-text hover:text-teal">
+              <span className="font-label text-[12px] text-yellow uppercase">Contact</span>
+              <a href={`mailto:${contactEmail}`} className="break-all text-[15px] leading-5 text-text hover:text-teal">
                 {contactEmail}
               </a>
             </p>
@@ -133,19 +133,19 @@ export function SiteFooter() {
             aria-label="Solana dApp Store listing: coming soon"
             role="img"
           >
-            <span aria-hidden="true" className="grid size-8 place-items-center bg-surface-2 font-pixel text-[14px] text-teal">
+            <span aria-hidden="true" className="grid size-8 place-items-center bg-surface-2 font-label text-[15px] text-teal">
               ◆
             </span>
             <span className="flex flex-col">
-              <span className="font-pixel text-[9px] leading-3 text-muted uppercase">Get it on the</span>
-              <span className="font-pixel text-[12px] leading-4 text-text uppercase">Solana dApp Store</span>
+              <span className="font-label text-[12px] leading-3 text-muted uppercase">Get it on the</span>
+              <span className="font-label text-[13px] leading-4 text-text uppercase">Solana dApp Store</span>
             </span>
           </div>
-          <span className="font-pixel text-[10px] text-yellow uppercase">Coming soon · Seeker</span>
+          <span className="font-label text-[12px] text-yellow uppercase">Coming soon · Seeker</span>
         </div>
       </div>
 
-      <div className="mx-auto mt-10 flex max-w-[1200px] flex-col gap-2 border-t-2 border-line px-4 pt-6 font-pixel text-[10px] leading-4 text-muted sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto mt-10 flex max-w-[1200px] flex-col gap-2 border-t-2 border-line px-4 pt-6 font-label text-[12px] leading-4 text-muted sm:flex-row sm:items-center sm:justify-between">
         <span>© {year} ODLET · odlet.xyz</span>
         <span>Early access · collectibles on Solana devnet (test SOL, no real funds)</span>
         <span>Fonts: Silkscreen, Pixelify Sans (OFL)</span>

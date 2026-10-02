@@ -39,7 +39,7 @@ export function DailyView() {
     <div className="flex flex-col gap-8">
       <PixelPanel accent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div>
-          <p className="font-pixel text-[12px] text-muted">
+          <p className="font-label text-[13px] text-muted">
             DAILY {String(day).padStart(3, "0")} · <span className="tabular">RESETS {now ? fmt(untilResetMs(now)) : "--:--:--"}</span>
           </p>
           <p className="mt-2 max-w-[520px] text-[15px] leading-6 text-muted">
@@ -56,7 +56,7 @@ export function DailyView() {
           const ui = TRIAL_UI[t.kind as keyof typeof TRIAL_UI] ?? TRIAL_UI.Pattern;
           return (
             <li key={t.index} data-palette={ui.palette} data-accent="true" className="px-panel flex flex-col gap-3 p-4">
-              <div className="flex justify-between font-pixel text-[10px] text-muted">
+              <div className="flex justify-between font-label text-[12px] text-muted">
                 <span>TRIAL {t.index + 1}</span>
                 <span>{t.difficulty.toUpperCase()}</span>
               </div>

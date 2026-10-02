@@ -53,7 +53,7 @@ export function PixelTabs<T extends string>({
             aria-selected={active}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(t.id)}
-            className={`px-border min-h-10 shrink-0 px-4 font-pixel text-[12px] uppercase transition-colors ${
+            className={`px-border min-h-10 shrink-0 px-4 font-label text-[13px] uppercase transition-colors ${
               active ? "bg-accent text-bg-0" : "bg-surface-1 text-muted hover:text-text"
             }`}
             style={active ? ({ "--pb": "var(--accent)" } as React.CSSProperties) : undefined}

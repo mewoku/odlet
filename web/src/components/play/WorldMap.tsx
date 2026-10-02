@@ -28,9 +28,9 @@ export function WorldMap() {
           <li key={w.name} data-palette={w.palette} data-accent="true" className="px-panel flex flex-col gap-3 p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="font-pixel text-[10px] text-muted">WORLD {w.index + 1}</p>
+                <p className="font-label text-[12px] text-muted">WORLD {w.index + 1}</p>
                 <h3 className="text-[24px] leading-8 text-accent">{w.name}</h3>
-                <p className="text-[13px] leading-5 text-muted">{w.blurb}</p>
+                <p className="text-[14px] leading-5 text-muted">{w.blurb}</p>
               </div>
               <VoxelViewer encoding={w.bossEncoding} size={72} resolution={28} interactive={false} rim={p.accent} phase={w.index} label={`${w.name} boss ${w.bossName}`} />
             </div>
@@ -40,7 +40,7 @@ export function WorldMap() {
                 <span
                   key={l.index}
                   title={l.isBoss ? `Boss: ${w.bossName}` : `Level ${l.index + 1} · ${l.kind}`}
-                  className="grid place-items-center font-pixel text-[8px] leading-none"
+                  className="grid place-items-center font-label text-[12px] leading-none"
                   style={{
                     width: l.isBoss ? 24 : 16,
                     height: l.isBoss ? 24 : 16,
@@ -53,7 +53,7 @@ export function WorldMap() {
                 </span>
               ))}
             </div>
-            <p className="font-pixel text-[10px] text-muted">
+            <p className="font-label text-[12px] text-muted">
               BOSS · <span className="text-text">{w.bossName}</span>
             </p>
           </li>

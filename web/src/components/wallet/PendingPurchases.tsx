@@ -50,10 +50,10 @@ export function PendingPurchases() {
     <div role="region" aria-label="Unfinished payments" className="border-b-2 border-warn bg-[rgb(74_30_18/0.85)]">
       <ul className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-3">
         {items.map((p) => (
-          <li key={p.signature} className="flex flex-wrap items-center gap-3 text-[13px] leading-5">
-            <span className="font-pixel text-[10px] text-warn">UNFINISHED PAYMENT</span>
+          <li key={p.signature} className="flex flex-wrap items-center gap-3 text-[14px] leading-5">
+            <span className="font-label text-[12px] text-warn">UNFINISHED PAYMENT</span>
             <span className="text-text">{p.label}</span>
-            <a className="font-pixel text-[10px] text-muted underline" href={`https://explorer.solana.com/tx/${p.signature}?cluster=devnet`} target="_blank" rel="noopener noreferrer">
+            <a className="font-label text-[12px] text-muted underline" href={`https://explorer.solana.com/tx/${p.signature}?cluster=devnet`} target="_blank" rel="noopener noreferrer">
               {p.signature.slice(0, 8)}…
             </a>
             {p.lastError && <span className="text-muted">({p.lastError})</span>}

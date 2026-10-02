@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role={t.tone === "error" ? "alert" : "status"}
-            className="px-rise px-border pointer-events-auto flex max-w-[420px] items-center gap-3 bg-surface-2 px-4 py-3 text-[14px] leading-5"
+            className="px-rise px-border pointer-events-auto flex max-w-[420px] items-center gap-3 bg-surface-2 px-4 py-3 text-[15px] leading-5"
             style={{ "--pb": TONE[t.tone] } as React.CSSProperties}
           >
             <span aria-hidden="true" className="size-2 shrink-0" style={{ background: TONE[t.tone] }} />

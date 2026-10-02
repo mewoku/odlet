@@ -82,19 +82,19 @@ function BossCard({ ev, demo }: { ev: BossEvent; demo: boolean }) {
         <VoxelViewer encoding={encoding} size={176} resolution={52} rim={PALETTES[paletteName].accent} label={`${ev.name} guardian`} />
       </div>
       <div className="relative flex flex-col gap-3">
-        <p className="font-pixel text-[12px] text-accent-2">{live ? `LIVE · ${timeLeft(ev.endsAt)}` : `STARTS ${new Date(ev.startsAt).toUTCString().slice(0, 16).toUpperCase()}`}</p>
+        <p className="font-label text-[13px] text-accent-2">{live ? `LIVE · ${timeLeft(ev.endsAt)}` : `STARTS ${new Date(ev.startsAt).toUTCString().slice(0, 16).toUpperCase()}`}</p>
         <h2 className="text-[32px] leading-10 text-accent">{ev.name}</h2>
-        <div className="grid grid-cols-3 gap-3 font-pixel text-[12px]">
+        <div className="grid grid-cols-3 gap-3 font-label text-[13px]">
           <span>
-            <span className="block text-[10px] text-muted">STAGES</span>
+            <span className="block text-[12px] text-muted">STAGES</span>
             {ev.stages}
           </span>
           <span>
-            <span className="block text-[10px] text-muted">TIME</span>
+            <span className="block text-[12px] text-muted">TIME</span>
             {Math.round(ev.timeLimitMs / 60000)} MIN
           </span>
           <span>
-            <span className="block text-[10px] text-muted">REWARD</span>
+            <span className="block text-[12px] text-muted">REWARD</span>
             <span className="text-yellow">{formatShards(ev.rewardShards)} ◆</span>
           </span>
         </div>

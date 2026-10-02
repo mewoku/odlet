@@ -18,7 +18,7 @@ export function BuiltWith() {
 
       {partners.length > 0 && (
         <div className="mb-8">
-          <h3 className="mb-3 font-pixel text-[12px] text-yellow uppercase">Partners</h3>
+          <h3 className="mb-3 font-label text-[13px] text-yellow uppercase">Partners</h3>
           <ul className="flex flex-wrap gap-4">
             {partners.map((p) => (
               <li key={p.name}>
@@ -30,8 +30,8 @@ export function BuiltWith() {
                 >
                   {p.logo && <img src={p.logo} alt="" width={32} height={32} className="pixelated size-8 object-contain" />}
                   <span className="flex flex-col">
-                    <span className="font-pixel text-[14px] leading-5 text-text uppercase">{p.name}</span>
-                    {p.note && <span className="text-[12px] leading-4 text-muted">{p.note}</span>}
+                    <span className="font-label text-[15px] leading-5 text-text uppercase">{p.name}</span>
+                    {p.note && <span className="text-[13px] leading-4 text-muted">{p.note}</span>}
                   </span>
                 </a>
               </li>
@@ -43,12 +43,12 @@ export function BuiltWith() {
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" aria-label="Built with">
         {BUILT_WITH.map((b) => (
           <li key={b.name} className="px-panel dither-bg flex flex-col gap-1 p-4">
-            <span className="font-pixel text-[14px] leading-5 text-text uppercase">{b.name}</span>
-            <span className="text-[12px] leading-4 text-muted">{b.role}</span>
+            <span className="font-label text-[15px] leading-5 text-text uppercase">{b.name}</span>
+            <span className="text-[13px] leading-4 text-muted">{b.role}</span>
           </li>
         ))}
       </ul>
-      <p className="mt-4 font-pixel text-[10px] leading-4 text-muted">
+      <p className="mt-4 font-label text-[12px] leading-4 text-muted">
         Names are trademarks of their owners. Listed as technology we use — not an endorsement or partnership.
       </p>
     </section>

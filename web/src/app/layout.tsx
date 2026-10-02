@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Pixelify_Sans, Silkscreen } from "next/font/google";
+import { Chakra_Petch, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { BottomNav, SiteHeader } from "@/components/layout/Nav";
@@ -9,7 +9,8 @@ import { headers } from "next/headers";
 import { publicEnv } from "@/lib/env";
 
 const silkscreen = Silkscreen({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-silkscreen", display: "swap" });
-const pixelify = Pixelify_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-pixelify", display: "swap" });
+// Pixel lettering (Silkscreen) is for big display text only; everything people read runs in Chakra Petch.
+const chakra = Chakra_Petch({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-chakra", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.siteUrl),
@@ -32,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // nonce set by middleware.ts onto its scripts (no script 'unsafe-inline').
   await headers();
   return (
-    <html lang="en" className={`${silkscreen.variable} ${pixelify.variable}`}>
+    <html lang="en" className={`${silkscreen.variable} ${chakra.variable}`}>
       <body>
         <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-yellow focus:px-3 focus:py-2 focus:text-bg-0">
           Skip to content
