@@ -31,6 +31,14 @@ namespace Ronriku.Presentation.Arcade
 
         public Challenge Challenge => _challenge;
 
+        /// <summary>True while the prompt intro holds the puzzle back.</summary>
+        public bool IntroPlaying => _finishIntro != null;
+
+        /// <summary>Ends the prompt intro at once and unlocks the puzzle.</summary>
+        public void SkipIntro() => _finishIntro?.Invoke();
+
+        private Action _finishIntro;
+
         public ChallengeView(Challenge challenge, Palette palette)
         {
             _challenge = challenge;
@@ -61,6 +69,13 @@ namespace Ronriku.Presentation.Arcade
             body.style.justifyContent = Justify.Center;
             body.style.alignItems = Align.Center;
             Add(body);
+            bool introStarted = false;
+            RegisterCallback<AttachToPanelEvent>(_ =>
+            {
+                if (introStarted) return;
+                introStarted = true;
+                PlayIntro(prompt, body);
+            });
 
             switch (challenge.Kind)
             {
@@ -72,6 +87,97 @@ namespace Ronriku.Presentation.Arcade
                 case ChallengeKind.Arrows: BuildArrows(body); break;
                 default: BuildScales(body); break;
             }
+        }
+
+        // ------------------------------------------------------------------ prompt intro
+
+        private const int IntroSize = 28;
+        private static readonly Dictionary<ChallengeKind, int> SeenKinds = new Dictionary<ChallengeKind, int>();
+
+        /// <summary>
+        /// Read first, then play: the task shows big in the middle while the clock is paused (tap skips),
+        /// then flies up into the header and the puzzle fades in. New kinds hold longer than familiar ones.
+        /// </summary>
+        private void PlayIntro(Label prompt, VisualElement body)
+        {
+            SeenKinds.TryGetValue(_challenge.Kind, out int seen);
+            SeenKinds[_challenge.Kind] = seen + 1;
+            int holdMs = seen < 2
+                ? Mathf.Clamp(1100 + 45 * _challenge.Prompt.Length, 1800, 2800)
+                : Mathf.Clamp(500 + 25 * _challenge.Prompt.Length, 900, 1400);
+
+            Showing?.Invoke(true);
+            prompt.style.opacity = 0;
+            body.style.opacity = 0;
+            body.pickingMode = PickingMode.Ignore;
+            body.SetEnabled(false);
+
+            var intro = new VisualElement { name = "prompt-intro" };
+            intro.style.position = Position.Absolute;
+            intro.style.left = intro.style.right = intro.style.top = intro.style.bottom = 0;
+            intro.style.justifyContent = Justify.Center;
+            intro.style.alignItems = Align.Center;
+            intro.style.paddingLeft = intro.style.paddingRight = 20;
+            var big = UiFactory.Paragraph(_challenge.Prompt, IntroSize, _palette.Accent);
+            big.style.unityFontDefinition = RonrikuTheme.BodyBold;
+            big.style.unityTextAlign = TextAnchor.MiddleCenter;
+            big.style.maxWidth = Length.Percent(100);
+            big.style.unityTextOutlineColor = RonrikuTheme.Background;
+            big.style.unityTextOutlineWidth = 1f;
+            intro.Add(big);
+            var bar = new VisualElement { pickingMode = PickingMode.Ignore };
+            bar.style.height = 4;
+            bar.style.width = 160;
+            bar.style.marginTop = 18;
+            bar.style.backgroundColor = RonrikuTheme.Line;
+            var fill = new VisualElement { pickingMode = PickingMode.Ignore };
+            fill.style.height = Length.Percent(100);
+            fill.style.width = 0;
+            fill.style.backgroundColor = _palette.Accent;
+            bar.Add(fill);
+            intro.Add(bar);
+            var hint = UiFactory.Label("TAP TO START", 11, RonrikuTheme.Muted);
+            hint.style.marginTop = 10;
+            intro.Add(hint);
+            Add(intro);
+            Juice.Punch(big, 0.12f, 0.25f);
+
+            bool leaving = false;
+            void Leave()
+            {
+                if (leaving) return;
+                leaving = true;
+                bar.style.display = hint.style.display = DisplayStyle.None;
+                // Fly the big text onto the header slot, shrinking to its size, then hand over.
+                Vector2 from = big.worldBound.center, to = prompt.worldBound.center;
+                Vector2 delta = float.IsNaN(from.x) || float.IsNaN(to.x) ? Vector2.zero : to - from;
+                float endScale = (float)prompt.resolvedStyle.fontSize / Mathf.Max(1f, big.resolvedStyle.fontSize);
+                if (MotionSettings.ReducedMotion) Finish();
+                else Juice.Animate(big, 0.32f, t =>
+                {
+                    float e = 1f - (1f - t) * (1f - t) * (1f - t);
+                    big.style.translate = new Translate(delta.x * e, delta.y * e);
+                    float sc = Mathf.Lerp(1f, endScale, e);
+                    big.style.scale = new Scale(new Vector3(sc, sc, 1));
+                    body.style.opacity = e;
+                }, Finish);
+            }
+            void Finish()
+            {
+                if (_finishIntro == null) return;
+                _finishIntro = null;
+                intro.RemoveFromHierarchy();
+                prompt.style.opacity = 1;
+                body.style.opacity = 1;
+                body.pickingMode = PickingMode.Position;
+                body.SetEnabled(true);
+                Showing?.Invoke(false);
+                if (_challenge.Kind == ChallengeKind.Memory) StartMemoryShow();
+            }
+
+            _finishIntro = Finish;
+            intro.RegisterCallback<PointerDownEvent>(_ => Leave());
+            Juice.Animate(fill, holdMs / 1000f, t => fill.style.width = Length.Percent(t * 100f), Leave);
         }
 
         private void Submit(int answer)
@@ -319,31 +425,31 @@ namespace Ronriku.Presentation.Arcade
                 grid.Add(cell);
             }
             body.Add(grid);
+        }
 
-            // Show phase: lit cells glow, then everything goes dark and the grid unlocks.
-            RegisterCallback<AttachToPanelEvent>(_ =>
-            {
-                Showing?.Invoke(true);
-                for (int i = 0; i < 16; i++)
-                    if ((_challenge.Answer & (1 << i)) != 0)
-                    {
-                        _cells[i].style.backgroundColor = RonrikuTheme.Yellow;
-                        UiFactory.SetBorder(_cells[i], 2, Color.white);
-                    }
-                Feedback.Snap();
-                schedule.Execute(() =>
+        /// <summary>Show phase (after the prompt intro): lit cells glow, then everything goes dark and the grid unlocks.</summary>
+        private void StartMemoryShow()
+        {
+            Showing?.Invoke(true);
+            for (int i = 0; i < 16; i++)
+                if ((_challenge.Answer & (1 << i)) != 0)
                 {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        _cells[i].style.backgroundColor = RonrikuTheme.Surface2;
-                        UiFactory.SetBorder(_cells[i], 2, RonrikuTheme.Line);
-                        _cells[i].SetEnabled(true);
-                        UiFactory.Pressable(_cells[i]);
-                    }
-                    Feedback.Whoosh();
-                    Showing?.Invoke(false);
-                }).StartingIn(1300 + 150 * _challenge.Pick);
-            });
+                    _cells[i].style.backgroundColor = RonrikuTheme.Yellow;
+                    UiFactory.SetBorder(_cells[i], 2, Color.white);
+                }
+            Feedback.Snap();
+            schedule.Execute(() =>
+            {
+                for (int i = 0; i < 16; i++)
+                {
+                    _cells[i].style.backgroundColor = RonrikuTheme.Surface2;
+                    UiFactory.SetBorder(_cells[i], 2, RonrikuTheme.Line);
+                    _cells[i].SetEnabled(true);
+                    UiFactory.Pressable(_cells[i]);
+                }
+                Feedback.Whoosh();
+                Showing?.Invoke(false);
+            }).StartingIn(1300 + 150 * _challenge.Pick);
         }
 
         private void TapCell(int index)

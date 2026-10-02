@@ -44,7 +44,7 @@ namespace Ronriku.Presentation.Components
                 tab.style.flexGrow = 1;
                 tab.style.flexBasis = 0;
                 tab.style.height = 36;
-                tab.style.fontSize = 10;
+                tab.style.fontSize = 13;
                 tab.userData = scope;
                 if (_tabs.Count > 0) tab.style.marginLeft = 6;
                 _tabs.Add(tab);
@@ -151,8 +151,8 @@ namespace Ronriku.Presentation.Components
             field.textEdition.placeholder = placeholder;
             field.style.height = 40;
             field.style.marginLeft = field.style.marginRight = 0;
-            field.style.unityFontDefinition = RonrikuTheme.Display;
-            field.style.fontSize = 12;
+            field.style.unityFontDefinition = RonrikuTheme.Body;
+            field.style.fontSize = 15;
             var input = field.Q(TextField.textInputUssName);
             if (input != null)
             {

@@ -29,7 +29,7 @@ namespace Ronriku.Presentation.Arcade
     {
         private static float Now => Time.realtimeSinceStartup;
 
-        private static void Animate(VisualElement host, float seconds, Action<float> step, Action done = null)
+        internal static void Animate(VisualElement host, float seconds, Action<float> step, Action done = null)
         {
             float start = Now;
             IVisualElementScheduledItem item = null;

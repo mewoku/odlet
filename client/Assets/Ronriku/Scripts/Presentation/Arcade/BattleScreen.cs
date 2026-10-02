@@ -282,7 +282,7 @@ namespace Ronriku.Presentation.Arcade
             int combo = _state.Combo;
             _combo.text = combo > 0 ? $"COMBO {combo}" : "COMBO 0";
             _combo.style.color = combo >= 5 ? RonrikuTheme.Gold : combo >= 3 ? RonrikuTheme.Hex("FF8A3D") : combo > 0 ? _palette.Accent : RonrikuTheme.Muted;
-            _combo.style.fontSize = 13 + Math.Min(combo, 5);
+            _combo.style.fontSize = RonrikuTheme.TextSize(13) + Math.Min(combo, 5);
             if (combo > 0) Juice.Punch(_combo, 0.3f);
             if (combo > _lastCombo && (combo == BattleState.HeatCombo || combo == 5 || combo == 8))
                 Juice.Banner(_overlay, combo >= 8 ? "GODLIKE" : combo >= 5 ? "UNSTOPPABLE" : "ON FIRE", combo >= 5 ? RonrikuTheme.Gold : RonrikuTheme.Hex("FF8A3D"), 0.7f);

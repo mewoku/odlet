@@ -136,6 +136,9 @@ namespace Ronriku.Tests
                 yield return new WaitForSecondsRealtime(0.9f);
                 var view = root.Q<ChallengeView>();
                 if (view == null) continue;
+                // Let the prompt intro read on camera, then go.
+                float introUntil = Time.realtimeSinceStartup + 4f;
+                while (view.IntroPlaying && Time.realtimeSinceStartup < introUntil) yield return null;
                 if (c.Kind == ChallengeKind.Sum)
                 {
                     for (int i = 0; i < c.Items.Length; i++)

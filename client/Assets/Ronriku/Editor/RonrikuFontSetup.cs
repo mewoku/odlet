@@ -7,7 +7,7 @@ using UnityEngine.TextCore.Text;
 namespace Ronriku.Editor
 {
     /// <summary>
-    /// Creates UI Toolkit font assets for the OFL pixel fonts under Resources so the runtime can load
+    /// Creates UI Toolkit font assets for the OFL fonts (pixel display + readable text) under Resources so the runtime can load
     /// them with <c>Resources.Load&lt;FontAsset&gt;</c>. Idempotent.
     /// </summary>
     public static class RonrikuFontSetup
@@ -25,6 +25,8 @@ namespace Ronriku.Editor
             Create("Silkscreen-Regular.ttf", "Silkscreen");
             Create("Silkscreen-Bold.ttf", "SilkscreenBold");
             Create("PixelifySans.ttf", "PixelifySans");
+            Create("ChakraPetch-Medium.ttf", "ChakraPetch");
+            Create("ChakraPetch-Bold.ttf", "ChakraPetchBold");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("RONRIKU_FONTS_OK");

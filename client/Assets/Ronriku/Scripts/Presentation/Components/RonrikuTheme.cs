@@ -67,15 +67,27 @@ namespace Ronriku.Presentation.Components
         public const float Gutter = 16f;
         public const float TouchTarget = 48f;
 
-        private static FontAsset _display, _displayBold, _body;
+        // Pixel lettering is for big display text only. Anything smaller than DisplayMinSize, and all
+        // running text, uses the readable face: tiny pixel caps were the top complaint in playtests.
+        public const int DisplayMinSize = 18;
+
+        private static FontAsset _display, _displayBold, _body, _bodyBold;
 
         public static FontDefinition Display => Font(ref _display, "Fonts/Silkscreen");
         public static FontDefinition DisplayBold => Font(ref _displayBold, "Fonts/SilkscreenBold");
-        public static FontDefinition Body => Font(ref _body, "Fonts/PixelifySans");
+        public static FontDefinition Body => Font(ref _body, "Fonts/ChakraPetch", "Fonts/PixelifySans");
+        public static FontDefinition BodyBold => Font(ref _bodyBold, "Fonts/ChakraPetchBold", "Fonts/ChakraPetch", "Fonts/PixelifySans");
 
-        private static FontDefinition Font(ref FontAsset cache, string path)
+        /// <summary>Readable text sizes: small labels grow so they hold up on a phone.</summary>
+        public static int TextSize(int size) => size < 12 ? size + 3 : size < 16 ? size + 2 : size;
+
+        private static FontDefinition Font(ref FontAsset cache, params string[] paths)
         {
-            if (cache == null) cache = Resources.Load<FontAsset>(path);
+            foreach (string path in paths)
+            {
+                if (cache != null) break;
+                cache = Resources.Load<FontAsset>(path);
+            }
             return cache != null ? FontDefinition.FromSDFFont(cache) : default;
         }
 

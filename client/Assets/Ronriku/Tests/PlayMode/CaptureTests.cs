@@ -134,6 +134,7 @@ namespace Ronriku.Tests
                 Save(target, folder, "arcade", "1-battle");
                 var battle = root.Q<Ronriku.Presentation.Arcade.BattleScreen>();
                 var c = battle.State.Current;
+                root.Q<Ronriku.Presentation.Arcade.ChallengeView>()?.SkipIntro();
                 if (c.Kind == Ronriku.Domain.Arcade.ChallengeKind.Sum)
                 {
                     for (int i = 0; i < c.Items.Length; i++) if ((c.Answer & (1 << i)) != 0) DailyRouteTests.Click(root.Q<Button>($"tile-{i}"));

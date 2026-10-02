@@ -6,6 +6,7 @@ Odlet's own code is MIT licensed (see `LICENSE`). It includes or depends on the 
 
 - **Silkscreen** by Jason Kottke — `client/Assets/Ronriku/Fonts/OFL-Silkscreen.txt`
 - **Pixelify Sans** by Stefie Justprince — `client/Assets/Ronriku/Fonts/OFL-PixelifySans.txt`
+- **Chakra Petch** by Cadson Demak — `client/Assets/Ronriku/Fonts/OFL-ChakraPetch.txt`
 
 The website loads the same families from Google Fonts via `next/font`.
 

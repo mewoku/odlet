@@ -162,7 +162,7 @@ namespace Ronriku.Presentation.Arcade
                 {
                     var chip = UiFactory.FlatButton(Charms.Name(charm), () => Toast.Show(this, Charms.Describe(charm), RonrikuTheme.Gold));
                     chip.style.height = 30;
-                    chip.style.fontSize = 10;
+                    chip.style.fontSize = 12;
                     chip.style.color = RonrikuTheme.Gold;
                     chip.style.marginLeft = chip.style.marginRight = 3;
                     UiFactory.SetBorder(chip, 2, RonrikuTheme.WithAlpha(RonrikuTheme.Gold, 0.6f));

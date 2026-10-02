@@ -66,7 +66,7 @@ namespace Ronriku.Presentation.Screens
                 var chip = UiFactory.FlatButton(LevelDef.WorldNames[w], () => SelectWorld(world));
                 chip.name = $"world-{w}";
                 chip.style.height = 32;
-                chip.style.fontSize = 10;
+                chip.style.fontSize = 12;
                 chip.style.marginRight = 8;
                 _worldChips.Add(chip);
                 worlds.Add(chip);

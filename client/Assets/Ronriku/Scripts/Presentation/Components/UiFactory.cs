@@ -11,9 +11,11 @@ namespace Ronriku.Presentation.Components
         public static Label Label(string text, int size, Color color, FontStyle style = FontStyle.Normal)
         {
             var label = new Label(text);
-            label.style.fontSize = size;
+            bool display = style == FontStyle.Bold && size >= RonrikuTheme.DisplayMinSize;
+            label.style.fontSize = display ? size : RonrikuTheme.TextSize(size);
             label.style.color = color;
-            label.style.unityFontDefinition = style == FontStyle.Bold ? RonrikuTheme.Display : RonrikuTheme.Body;
+            label.style.unityFontDefinition = display ? RonrikuTheme.Display
+                : style == FontStyle.Bold ? RonrikuTheme.BodyBold : RonrikuTheme.Body;
             label.style.unityTextAlign = TextAnchor.MiddleCenter;
             label.style.whiteSpace = WhiteSpace.NoWrap;
             label.style.marginLeft = label.style.marginRight = 0;
@@ -22,7 +24,7 @@ namespace Ronriku.Presentation.Components
             return label;
         }
 
-        /// <summary>Heading in the display pixel font.</summary>
+        /// <summary>Heading: pixel display font when big, bold readable font when small.</summary>
         public static Label Heading(string text, int size, Color color) => Label(text, size, color, FontStyle.Bold);
 
         /// <summary>Wrapping body text.</summary>
@@ -43,7 +45,8 @@ namespace Ronriku.Presentation.Components
             button.style.backgroundColor = RonrikuTheme.Surface2;
             SetBorder(button, 2, RonrikuTheme.Line);
             button.style.color = RonrikuTheme.Text;
-            button.style.fontSize = 12;
+            button.style.fontSize = 14;
+            button.style.unityFontDefinition = RonrikuTheme.BodyBold;
             button.style.height = 44;
             return button;
         }
@@ -53,9 +56,9 @@ namespace Ronriku.Presentation.Components
         {
             var button = BaseButton(text, clicked);
             button.style.height = 52;
-            button.style.fontSize = 16;
+            button.style.fontSize = 17;
             button.style.color = RonrikuTheme.Background;
-            button.style.unityFontDefinition = RonrikuTheme.DisplayBold;
+            button.style.unityFontDefinition = RonrikuTheme.BodyBold;
             button.style.backgroundImage = new StyleBackground(PixelTextures.DiagonalGradient(palette.Accent, palette.Accent2));
             button.style.backgroundSize = new BackgroundSize(Length.Percent(100), Length.Percent(100));
             SetBorder(button, 2, Color.Lerp(palette.Accent, Color.white, 0.35f));
@@ -144,7 +147,7 @@ namespace Ronriku.Presentation.Components
             button.style.marginLeft = button.style.marginRight = 0;
             button.style.marginTop = button.style.marginBottom = 0;
             button.style.paddingLeft = button.style.paddingRight = 12;
-            button.style.unityFontDefinition = RonrikuTheme.Display;
+            button.style.unityFontDefinition = RonrikuTheme.BodyBold;
             button.style.unityTextAlign = TextAnchor.MiddleCenter;
             button.focusable = true;
             Pressable(button);

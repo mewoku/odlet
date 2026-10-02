@@ -40,7 +40,7 @@ namespace Ronriku.Presentation.Screens
             var title = new PixelLabel("DAILY", RonrikuTheme.Frost.Accent, 8);
             title.style.height = 64;
             Add(title);
-            var tagline = UiFactory.Heading("THREE TESTS. ONE MIND.", 11, RonrikuTheme.Muted);
+            var tagline = UiFactory.Heading("ONE RUN A DAY  ·  THREE STEPS IN A ROW", 11, RonrikuTheme.Muted);
             tagline.style.marginBottom = 8;
             Add(tagline);
 
@@ -50,12 +50,18 @@ namespace Ronriku.Presentation.Screens
             board.style.marginBottom = -20;
             Add(board);
 
+            // One run, three steps: chained with arrows and tappable, so they don't read as three
+            // separate games you can't open.
+            void Start() { haptics.Selection(); begin(); }
             var trials = UiFactory.Row();
+            trials.name = "daily-steps";
             trials.style.justifyContent = Justify.SpaceBetween;
             trials.style.marginTop = 8;
-            trials.Add(TrialCard("PATTERN", "pattern", RonrikuTheme.Pattern, 1));
-            trials.Add(TrialCard("SHADOW", "cube", RonrikuTheme.Lab, 2));
-            trials.Add(TrialCard("LINK", "link", RonrikuTheme.Link, 3));
+            trials.Add(TrialCard("PATTERN", "pattern", RonrikuTheme.Pattern, 1, Start));
+            trials.Add(StepArrow());
+            trials.Add(TrialCard("SHADOW", "cube", RonrikuTheme.Lab, 2, Start));
+            trials.Add(StepArrow());
+            trials.Add(TrialCard("LINK", "link", RonrikuTheme.Link, 3, Start));
             Add(trials);
 
             _meta = UiFactory.Label(string.Empty, 12, RonrikuTheme.Muted);
@@ -65,8 +71,8 @@ namespace Ronriku.Presentation.Screens
             Add(_meta);
 
             var button = model.CompletedToday
-                ? UiFactory.FlatButton("PLAY AGAIN", () => { haptics.Selection(); begin(); })
-                : UiFactory.GlowButton("BEGIN", () => { haptics.Selection(); begin(); }, RonrikuTheme.Frost);
+                ? UiFactory.FlatButton("PLAY AGAIN", Start)
+                : UiFactory.GlowButton("START TODAY'S RUN", Start, RonrikuTheme.Frost);
             button.name = "begin-button";
             button.style.height = 56;
             button.style.marginTop = 4;
@@ -82,16 +88,28 @@ namespace Ronriku.Presentation.Screens
             schedule.Execute(UpdateMeta).Every(1000);
         }
 
-        private static VisualElement TrialCard(string title, string icon, Palette palette, int number)
+        private static VisualElement StepArrow()
+        {
+            var arrow = UiFactory.Heading(">", 20, RonrikuTheme.Muted);
+            arrow.style.flexShrink = 0;
+            arrow.style.width = 14;
+            return arrow;
+        }
+
+        private static VisualElement TrialCard(string title, string icon, Palette palette, int number, Action start)
         {
             var card = UiFactory.Panel(RonrikuTheme.WithAlpha(palette.Accent, 0.55f));
-            card.style.width = Length.Percent(31.5f);
+            card.name = $"step-{number}";
+            card.style.width = Length.Percent(29f);
+            card.pickingMode = PickingMode.Position;
+            card.RegisterCallback<ClickEvent>(_ => start());
+            UiFactory.Pressable(card);
             card.style.alignItems = Align.Center;
             card.style.paddingTop = card.style.paddingBottom = 10;
             card.style.backgroundImage = new StyleBackground(
                 PixelTextures.VerticalGradient(RonrikuTheme.WithAlpha(palette.Ambient, 0.9f), RonrikuTheme.WithAlpha(RonrikuTheme.Surface, 0.9f)));
             card.style.backgroundSize = new BackgroundSize(Length.Percent(100), Length.Percent(100));
-            card.Add(UiFactory.Heading(number.ToString(), 10, RonrikuTheme.Muted));
+            card.Add(UiFactory.Heading($"STEP {number}", 10, RonrikuTheme.Muted));
             var pixel = new PixelIcon(icon, palette.Accent, 28);
             pixel.style.marginTop = 6;
             pixel.style.marginBottom = 6;

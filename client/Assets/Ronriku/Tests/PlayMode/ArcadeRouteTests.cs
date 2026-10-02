@@ -75,6 +75,7 @@ namespace Ronriku.Tests
         private static IEnumerator Answer(VisualElement root, Challenge c)
         {
             var view = root.Q<ChallengeView>();
+            view.SkipIntro();
             switch (c.Kind)
             {
                 case ChallengeKind.Sum:
