@@ -62,7 +62,9 @@ const stills = [
 ];
 // Pixel wordmark from the brand kit (python marketing/brand/make_social.py); the pitch video falls back to text.
 stills.push(...copyAll([["marketing/brand/out/avatars/logo-wordmark-transparent.png", "logo-wordmark.png"]], repo, join(pub, "shots")));
-const audio = copyAll(AUDIO, join(evidence, "audio"), join(pub, "audio"));
+// Unity exports land in docs/evidence/audio (gitignored); assets/audio holds committed copies for cloud sessions.
+const audioSrc = existsSync(join(evidence, "audio", AUDIO[0])) ? join(evidence, "audio") : join(root, "assets", "audio");
+const audio = copyAll(AUDIO, audioSrc, join(pub, "audio"));
 if (audio.length === 0) console.warn("[prepare] no music found: run Unity RONRIKU > Export Music WAVs; ads will render silent.");
 const fonts = copyAll(FONTS, repo, join(pub, "fonts"));
 

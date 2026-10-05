@@ -35,7 +35,7 @@ node_modules/
 docs/evidence/audio/
 
 # Recorded gameplay (client Tests/PlayMode/FootageTests) and rendered ads: regenerable, large
-marketing/video/public/clips/
+marketing/video/public/clips/raw/
 marketing/video/out/
 marketing/video/node_modules/
 

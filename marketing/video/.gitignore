@@ -5,7 +5,6 @@ public/shots/
 public/audio/
 public/fonts/
 src/assets.generated.json
-# Recorded gameplay is large; share clips outside git (or remove this line to commit them)
-public/clips/*.mp4
+# Encoded gameplay clips (public/clips/*.mp4, ~14 MB) are committed so cloud sessions can render.
 # Frame sequences written by the Unity Footage test (regenerable)
 public/clips/raw/
