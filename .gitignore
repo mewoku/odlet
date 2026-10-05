@@ -38,3 +38,6 @@ docs/evidence/audio/
 marketing/video/public/clips/
 marketing/video/out/
 marketing/video/node_modules/
+
+# Python bytecode
+__pycache__/

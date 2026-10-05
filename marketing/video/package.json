@@ -11,6 +11,7 @@
     "render:tiktok": "node scripts/prepare.mjs && remotion render Tiktok15 out/tiktok15.mp4 --codec=h264 --crf=18 --concurrency=1",
     "render:trailer": "node scripts/prepare.mjs && remotion render Trailer30 out/trailer30.mp4 --codec=h264 --crf=18 --concurrency=1",
     "render:bumper": "node scripts/prepare.mjs && remotion render Bumper6 out/bumper6.mp4 --codec=h264 --crf=18 --concurrency=1",
+    "render:pitch": "node scripts/prepare.mjs && remotion render Pitch60 out/pitch60.mp4 --codec=h264 --crf=18 --concurrency=2 && remotion render Pitch60Silent out/pitch60-silent.mp4 --codec=h264 --crf=18 --concurrency=2",
     "render:all": "npm run render:tiktok && npm run render:trailer && npm run render:bumper",
     "still:tiktok": "node scripts/prepare.mjs && remotion still Tiktok15 out/tiktok15-frame.png --frame=20"
   },

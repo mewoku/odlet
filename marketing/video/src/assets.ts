@@ -18,6 +18,7 @@ const FACES: Array<[family: string, file: string, weight: string]> = [
   ["Silkscreen", "Silkscreen-Regular.ttf", "400"],
   ["Silkscreen", "Silkscreen-Bold.ttf", "700"],
   ["Pixelify Sans", "PixelifySans.ttf", "400 700"],
+  ["Space Grotesk", "SpaceGrotesk.ttf", "300 700"],
 ];
 
 let fontsRequested = false;

@@ -37,6 +37,7 @@ const FONTS = [
   ["client/Assets/Ronriku/Fonts/Silkscreen-Regular.ttf", "Silkscreen-Regular.ttf"],
   ["client/Assets/Ronriku/Fonts/Silkscreen-Bold.ttf", "Silkscreen-Bold.ttf"],
   ["client/Assets/Ronriku/Fonts/PixelifySans.ttf", "PixelifySans.ttf"],
+  ["marketing/video/assets/fonts/SpaceGrotesk.ttf", "SpaceGrotesk.ttf"], // OFL, pitch video headlines
 ];
 
 function copyAll(list, fromDir, toDir) {
@@ -59,6 +60,8 @@ const stills = [
   ...copyAll(STILLS, evidence, join(pub, "shots")),
   ...copyAll(WEB_STILLS, join(evidence, "web"), join(pub, "shots")),
 ];
+// Pixel wordmark from the brand kit (python marketing/brand/make_social.py); the pitch video falls back to text.
+stills.push(...copyAll([["marketing/brand/out/avatars/logo-wordmark-transparent.png", "logo-wordmark.png"]], repo, join(pub, "shots")));
 const audio = copyAll(AUDIO, join(evidence, "audio"), join(pub, "audio"));
 if (audio.length === 0) console.warn("[prepare] no music found: run Unity RONRIKU > Export Music WAVs; ads will render silent.");
 const fonts = copyAll(FONTS, repo, join(pub, "fonts"));
