@@ -32,7 +32,8 @@ export function buildCsp(o: { nonce: string; unity: boolean; dev: boolean; supab
     "font-src 'self' data:",
     `connect-src ${connect.join(" ")}`,
     `worker-src 'self'${o.unity ? " blob:" : ""}`,
-    "frame-src https://connect.solflare.com https://*.solflare.com",
+    // Turnstile (waitlist captcha) renders in a Cloudflare iframe; its script is injected by our bundle.
+    "frame-src https://connect.solflare.com https://*.solflare.com https://challenges.cloudflare.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

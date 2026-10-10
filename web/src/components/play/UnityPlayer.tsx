@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { PixelButton } from "../ui/PixelButton";
 import { PixelPanel } from "../ui/PixelPanel";
@@ -8,6 +8,14 @@ import { PixelIcon } from "../ui/PixelIcon";
 import { VoxelViewer } from "../figure/VoxelViewer";
 import { demoFigures } from "@/lib/demo/data";
 import type { UnityBuildFiles } from "@/lib/server/unityBuild";
+import { installMasterGain, readVolume, setVolume, type VolumeState } from "./gameAudio";
+
+// Wrap AudioContext before the Unity loader can create one (module eval runs before any effect).
+if (typeof window !== "undefined") installMasterGain();
+
+/** No download progress for this long → offer a retry. Boot (after the download) gets BOOT_STALL_MS. */
+const STALL_MS = 25_000;
+const BOOT_STALL_MS = 45_000;
 
 export function PixelProgress({ value, label }: { value: number; label: string }) {
   const segments = 20;
@@ -39,7 +47,7 @@ export function UnityPlayer({ build }: { build: UnityBuildFiles | null }) {
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     try {
-      setWebgl2(!!document.createElement("canvas").getContext("webgl2"));
+      setWebgl2(typeof WebAssembly === "object" && !!document.createElement("canvas").getContext("webgl2"));
     } catch {
       setWebgl2(false);
     }
@@ -62,6 +70,46 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
   const [dpr, setDpr] = useState(1);
   useEffect(() => setDpr(Math.min(2, window.devicePixelRatio || 1)), []);
 
+  // Unity reports some failures (out of memory, cache, wasm compile) only as window errors; without
+  // this the loader would sit on "BOOTING" forever.
+  const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  useEffect(() => {
+    if (isLoaded) return;
+    const fromUnity = (src: string, msg: string) => /\/unity\/|blob:|\.wasm|unityweb/i.test(src) || /unity|webassembly|wasm|out of memory|abort\(/i.test(msg);
+    const onError = (e: ErrorEvent) => {
+      const msg = e.message || String(e.error ?? "");
+      if (fromUnity(e.filename ?? "", msg)) setRuntimeError(msg);
+    };
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const reason = e.reason as { message?: string; stack?: string } | undefined;
+      const msg = String(reason?.message ?? e.reason ?? "");
+      if (fromUnity(String(reason?.stack ?? ""), msg)) setRuntimeError(msg);
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, [isLoaded]);
+
+  // Watchdog: progress that stops moving shows a slow-load notice with retry instead of a frozen bar.
+  const [stalled, setStalled] = useState(false);
+  const progress = useRef({ value: -1, at: 0 });
+  useEffect(() => {
+    progress.current = { value: loadingProgression, at: Date.now() };
+    setStalled(false);
+  }, [loadingProgression]);
+  useEffect(() => {
+    if (isLoaded) return;
+    const id = window.setInterval(() => {
+      const p = progress.current;
+      if (Date.now() - p.at > (p.value >= 0.9 ? BOOT_STALL_MS : STALL_MS)) setStalled(true);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [isLoaded]);
+  const failure = initialisationError ? String(initialisationError.message ?? initialisationError) : runtimeError;
+
   return (
     <div className="flex flex-col items-center gap-4">
       <div
@@ -81,19 +129,23 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
         />
         {!isLoaded && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 p-6">
-            {initialisationError ? (
+            {failure ? (
               <>
                 <p className="font-label text-[15px] text-danger">GAME FAILED TO START</p>
-                <p className="text-center text-[15px] text-muted">{String(initialisationError.message ?? initialisationError)}</p>
-                <PixelButton size="sm" onClick={onRetry}>
-                  Try again
-                </PixelButton>
+                <p className="max-h-[120px] overflow-auto text-center text-[14px] break-words text-muted">{failure.slice(0, 400)}</p>
+                <RetryButtons onRetry={onRetry} />
               </>
             ) : (
               <>
                 <p className="font-pixel text-[24px] text-teal">ODLET</p>
-                <PixelProgress value={loadingProgression} label="LOADING" />
-                <p className="px-blink font-label text-[12px] text-muted">BOOTING WEBGL…</p>
+                <PixelProgress value={loadingProgression} label={loadingProgression >= 0.9 ? "STARTING" : "LOADING"} />
+                <p className="px-blink font-label text-[12px] text-muted">{loadingProgression >= 0.9 ? "WARMING UP…" : "DOWNLOADING ~12 MB…"}</p>
+                {stalled && (
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <p className="text-[14px] leading-5 text-muted">Taking longer than usual. A slow connection or an old cached copy can do this.</p>
+                    <RetryButtons onRetry={onRetry} />
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -103,8 +155,72 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
         <PixelButton variant="secondary" size="sm" onClick={() => requestFullscreen(true)} disabled={!isLoaded}>
           Fullscreen
         </PixelButton>
+        <VolumeControl />
         <p className="font-label text-[12px] text-muted">CLICK / TAP TO PLAY · ARROWS OR WASD TO MOVE · DRAG TO SWIPE</p>
       </div>
+    </div>
+  );
+}
+
+/** Retry, or wipe Unity's download cache first (never the save in /idbfs) when a stale copy is stuck. */
+function RetryButtons({ onRetry }: { onRetry: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const reset = async () => {
+    setBusy(true);
+    try {
+      await new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase("UnityCache");
+        req.onsuccess = req.onerror = req.onblocked = () => resolve();
+      });
+      if ("caches" in window) for (const k of await caches.keys()) if (/unity/i.test(k)) await caches.delete(k);
+    } catch {
+      // nothing cached / storage blocked
+    }
+    window.location.reload();
+  };
+  return (
+    <div className="flex flex-wrap justify-center gap-3">
+      <PixelButton size="sm" onClick={onRetry}>
+        Try again
+      </PixelButton>
+      <PixelButton size="sm" variant="secondary" onClick={reset} disabled={busy}>
+        Clear cache &amp; reload
+      </PixelButton>
+    </div>
+  );
+}
+
+/** Mute toggle + volume slider; drives the master gain from gameAudio.ts (no Unity rebuild needed). */
+function VolumeControl() {
+  const [v, setV] = useState<VolumeState | null>(null);
+  useEffect(() => setV(readVolume()), []);
+  if (!v) return null;
+  const update = (next: VolumeState) => {
+    setV(next);
+    setVolume(next);
+  };
+  const silent = v.muted || v.volume === 0;
+  return (
+    <div className="flex items-center gap-2">
+      <PixelButton
+        variant="secondary"
+        size="sm"
+        onClick={() => update(silent ? { volume: v.volume || 0.5, muted: false } : { ...v, muted: true })}
+        aria-pressed={silent}
+        aria-label={silent ? "Unmute game sound" : "Mute game sound"}
+      >
+        {silent ? "Sound off" : "Sound on"}
+      </PixelButton>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={5}
+        value={Math.round((v.muted ? 0 : v.volume) * 100)}
+        onChange={(e) => update({ volume: Number(e.target.value) / 100, muted: false })}
+        aria-label="Game volume"
+        className="w-24 accent-[var(--teal)]"
+      />
     </div>
   );
 }

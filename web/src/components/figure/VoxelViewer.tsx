@@ -18,6 +18,8 @@ export interface VoxelViewerProps {
   label?: string;
   /** Initial yaw offset in radians (to desync turntables). */
   phase?: number;
+  /** Controlled facing (radians, absolute). Turns auto-rotate off; changes are applied without a remount. */
+  yaw?: number;
 }
 
 /** Pixelated voxel figure: three.js ortho iso render → tiny canvas → pixelated upscale. */
@@ -31,11 +33,15 @@ export function VoxelViewer({
   className = "",
   label = "Voxel figure",
   phase = 0,
+  yaw,
 }: VoxelViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<ViewerHandle | null>(null);
   const reduced = usePrefersReducedMotion();
   const [failed, setFailed] = useState(false);
+  const controlled = yaw !== undefined;
+  const yawRef = useRef(yaw);
+  yawRef.current = yaw;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,8 +50,8 @@ export function VoxelViewer({
     try {
       handle = getVoxelStage().add(canvas, encoding, {
         resolution: resolution ?? Math.max(32, Math.round(size / 4)),
-        autoRotate: autoRotate && !reduced,
-        yaw: Math.PI / 4 + phase,
+        autoRotate: autoRotate && !reduced && !controlled,
+        yaw: yawRef.current ?? Math.PI / 4 + phase,
         rim,
       });
     } catch {
@@ -72,7 +78,14 @@ export function VoxelViewer({
       handle?.dispose();
       handleRef.current = null;
     };
-  }, [encoding, size, resolution, autoRotate, reduced, rim, phase]);
+  }, [encoding, size, resolution, autoRotate, reduced, rim, phase, controlled]);
+
+  useEffect(() => {
+    const h = handleRef.current;
+    if (!h || yaw === undefined) return;
+    h.yaw = yaw;
+    h.dirty = true;
+  }, [yaw]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

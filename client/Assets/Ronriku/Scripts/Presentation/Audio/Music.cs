@@ -14,7 +14,7 @@ namespace Ronriku.Presentation.Audio
     {
         private const string EnabledKey = "ronriku.music";
         private const string VolumeKey = "ronriku.music.volume";
-        public const float DefaultVolume = 0.55f;
+        public const float DefaultVolume = 0.35f;
 
         private static MusicHost _host;
         private static MusicTrack _current = MusicTrack.None;
