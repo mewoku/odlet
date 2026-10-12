@@ -80,7 +80,6 @@ namespace Ronriku.Presentation.Arcade
             switch (challenge.Kind)
             {
                 case ChallengeKind.Next: BuildNext(body); break;
-                case ChallengeKind.Odd: BuildOdd(body); break;
                 case ChallengeKind.Sum: BuildSum(body); break;
                 case ChallengeKind.Memory: BuildMemory(body); break;
                 case ChallengeKind.Mirror: BuildMirror(body); break;
@@ -329,28 +328,6 @@ namespace Ronriku.Presentation.Arcade
                 options.Add(OptionButton(i, token, 100, 100));
             }
             body.Add(options);
-        }
-
-        // ------------------------------------------------------------------ Odd
-
-        private void BuildOdd(VisualElement body)
-        {
-            var grid = WrapRow();
-            grid.style.width = 290;
-            Color fill = _palette.Accent;
-            for (int i = 0; i < _challenge.Options.Length; i++)
-            {
-                var pixels = new PixelGridElement(_challenge.Options[i], fill);
-                int index = i;
-                var button = OptionButton(i, pixels, 128, 128);
-                _optionFrames[index] = c =>
-                {
-                    UiFactory.SetBorder(button, 3, c ?? RonrikuTheme.WithAlpha(_palette.Accent, 0.45f));
-                    pixels.SetFrame(c);
-                };
-                grid.Add(button);
-            }
-            body.Add(grid);
         }
 
         // ------------------------------------------------------------------ Sum

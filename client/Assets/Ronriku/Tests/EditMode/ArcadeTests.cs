@@ -44,15 +44,6 @@ namespace Ronriku.Tests
                         Assert.That(c.Options[c.Answer], Is.EqualTo(Challenges.MirrorHalf(c.Items[0])), where);
                         Assert.That(c.Options.Distinct().Count(), Is.EqualTo(3), where);
                         break;
-                    case ChallengeKind.Odd:
-                        // The odd one is the only picture that is not a rotation of the others.
-                        for (int i = 0; i < 4; i++)
-                        {
-                            int matches = 0;
-                            for (int j = 0; j < 4; j++) if (i != j && SameUpToRotation(c.Options[i], c.Options[j])) matches++;
-                            Assert.That(matches == 0, Is.EqualTo(i == c.Answer), where);
-                        }
-                        break;
                     default:
                         Assert.That(c.Options.Distinct().Count(), Is.EqualTo(c.Options.Length), where);
                         Assert.That(c.Answer, Is.InRange(0, c.Options.Length - 1), where);
@@ -62,15 +53,13 @@ namespace Ronriku.Tests
             }
         }
 
-        private static bool SameUpToRotation(int a, int b)
+        [Test]
+        public void Battle_PoolsNoLongerContainTheRemovedOddKind()
         {
-            int g = a;
-            for (int r = 0; r < 4; r++)
-            {
-                if (Challenges.Normalize(g) == Challenges.Normalize(b)) return true;
-                g = Ronriku.Domain.Puzzles.PatternGrid.Apply(Ronriku.Domain.Puzzles.PatternRule.Rotate90, g);
-            }
-            return false;
+            // ChallengeKind value 1 was Odd; it must not exist any more and worlds grow 3 → 4 → 5 → 6 kinds.
+            Assert.That(System.Enum.IsDefined(typeof(ChallengeKind), 1), Is.False);
+            for (int world = 0; world < 4; world++)
+                Assert.That(BattleConfig.PoolFor(world), Has.Length.EqualTo(3 + world), $"world {world}");
         }
 
         [Test]

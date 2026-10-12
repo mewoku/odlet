@@ -19,7 +19,7 @@ namespace Ronriku.Domain.Arcade
         /// <summary>World pools grow one kind per world so each world teaches something new.</summary>
         public static ChallengeKind[] PoolFor(int world)
         {
-            var pool = new List<ChallengeKind> { ChallengeKind.Next, ChallengeKind.Sum, ChallengeKind.Memory, ChallengeKind.Odd };
+            var pool = new List<ChallengeKind> { ChallengeKind.Next, ChallengeKind.Sum, ChallengeKind.Memory };
             if (world >= 1) pool.Add(ChallengeKind.Mirror);
             if (world >= 2) pool.Add(ChallengeKind.Arrows);
             if (world >= 3) pool.Add(ChallengeKind.Scales);
