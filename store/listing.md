@@ -23,7 +23,7 @@ Odlet is a pixel-art puzzle arcade. Walk a map of five worlds, meet voxel monste
 
 FIVE WORLDS, SIXTY LEVELS
 Every world mixes four kinds of play, then ends in a two-phase boss fight.
-• Battle: 3–10 second micro-puzzles (next in sequence, odd one out, sums, memory, mirror, arrows, scales). Right answers are attacks; chain them for combo multipliers before the monster swings.
+• Battle: 3–10 second micro-puzzles (next in sequence, sums, memory, mirror, arrows, scales). Right answers are attacks; chain them for combo multipliers before the monster swings.
 • Rune Hand: a deck-building duel. Play combos from a hand of runes, pick a charm that bends the scoring, and beat the monster's HP with chips × mult.
 • Ice Dash: swipe and slide until you hit a wall. Grab every gem, dodge the spikes, find the door. Three stars at par.
 • Beat Crawl: a rhythm dungeon. Monsters move on the music's beat, and so do you. Stay on beat for combos.

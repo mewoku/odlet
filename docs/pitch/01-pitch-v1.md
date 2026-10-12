@@ -18,7 +18,7 @@ Launching today on the **Solana dApp Store for Seeker**, and playable in any bro
 
 - **Adventure map**: 60 levels in 5 worlds (Lab, Prism, Ember, Grove, Frost), each with its own palette, music and world boss.
 - **4 arcade modes**
-  - **Battle**: 3–10 s micro-challenges (Next, Odd, Sum, Memory, Mirror, Arrows, Scales). Every right answer is an attack: *chips × mult*, combos up to ×6.
+  - **Battle**: 3–10 s micro-challenges (Next, Sum, Memory, Mirror, Arrows, Scales). Every right answer is an attack: *chips × mult*, combos up to ×6.
   - **Rune Hand**: a Balatro-like card fight. 36 runes, hands of 7, pairs to straights, **charms** that bend the scoring.
   - **Ice Dash**: swipe, slide until you hit a wall, grab the gems, reach the door. Par = the optimal solution.
   - **Beat Crawl**: a rhythm dungeon at 140 BPM. Move on the beat, bump monsters, build combo.

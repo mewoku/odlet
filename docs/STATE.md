@@ -8,7 +8,7 @@ Updated: 2026-09-26. Plan and contracts: `docs/PLAN_V2.md` (platform) and `docs/
 
 | Area | Status |
 |---|---|
-| Adventure | Each world: Battle ×4, Rune Hand ×3 (Balatro-style), Ice Dash ×2, Beat Crawl ×2, Boss (battle → rune hand). 7 battle micro-challenges. Flat middle difficulty; Rune Hand balanced by bot simulation (~68 % greedy win) |
+| Adventure | Each world: Battle ×4, Rune Hand ×3 (Balatro-style), Ice Dash ×2, Beat Crawl ×2, Boss (battle → rune hand). 6 battle micro-challenges (Odd removed). Flat middle difficulty; Rune Hand balanced by bot simulation (~68 % greedy win) |
 | Music | Procedural chiptune: 9 tracks × 3 intensity layers, stingers, beat clock (Crawl syncs to it). Toggle in ME |
 | Pattern (Daily) | Examples act out their rule (rotate/flip/slide/invert) |
 | Tuning | `Resources/RonrikuTuning.asset` — Inspector knobs, linked from the RONRIKU object |

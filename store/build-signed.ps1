@@ -7,7 +7,7 @@
 
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
-$unity = "D:\6000.6.0f1\Editor\Unity.exe"
+$unity = if ($env:UNITY_EDITOR) { $env:UNITY_EDITOR } else { "C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Unity.exe" }
 $keystore = Join-Path $HOME "ronriku-keys\ronriku-dappstore.keystore"
 $apk = Join-Path $repo "Builds\Android\ODLET.apk"
 $log = Join-Path $repo "Builds\android-signed.log"
@@ -33,7 +33,7 @@ finally {
 }
 
 # Verify the signature (must NOT be 'Android Debug').
-$apksigner = Get-ChildItem "D:\6000.6.0f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\build-tools" -Recurse -Filter apksigner.bat | Select-Object -First 1
+$apksigner = Get-ChildItem (Join-Path (Split-Path -Parent $unity) "Data\PlaybackEngines\AndroidPlayer\SDK\build-tools") -Recurse -Filter apksigner.bat | Select-Object -First 1
 if ($apksigner) { & $apksigner.FullName verify --print-certs $apk | Select-String "Signer #1 certificate DN|SHA-256" }
 Write-Host "Signed APK: $apk"
 Write-Host "Expected SHA-256 fingerprint starts 1E:F6:C0:AA (from make-keystore)."

@@ -20,7 +20,7 @@ param(
   [string]$OutFile = (Join-Path $HOME "ronriku-keys\ronriku-dappstore.keystore"),
   [string]$Alias = "ronriku",
   [string]$DName = "CN=ODLET, O=ODLET",
-  [string]$Keytool = "D:\6000.6.0f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK\bin\keytool.exe"
+  [string]$Keytool = "C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK\bin\keytool.exe"
 )
 $ErrorActionPreference = "Stop"
 

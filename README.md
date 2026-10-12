@@ -11,7 +11,7 @@ Status, verification and open items: [docs/STATE.md](docs/STATE.md). Architectur
 
 ## Fresh clone
 
-Requirements: Unity **6000.6.0f1** with Android + WebGL modules, Node 24, pnpm 9, Docker Desktop.
+Requirements: Unity **6000.6.5f1** with Android + WebGL modules, Node 24, pnpm 9, Docker Desktop.
 
 ```bash
 pnpm install

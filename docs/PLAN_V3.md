@@ -20,9 +20,10 @@ exactly from `(world, index)`; records store only stars, best time and a compact
 **Battle** — hero vs monster. A stream of 3–10 s micro-challenges; each right answer is an attack worth
 `(10 + speed bonus ≤ 10) chips × (1 + combo, max ×6) mult`. The monster swings on a timer (hits push it
 back); wrong answers and swings cost hearts. Stars = hearts kept. Micro-challenges (one-line prompts,
-tap answers): **Next** (sequence of tokens), **Odd** (one mirrored shape), **Sum** (tap tiles to hit a
-number), **Memory** (lights flash), **Mirror** (complete the symmetric picture), **Arrows** (follow the
-arrows), **Scales** (weights). World 1 teaches four, each later world adds one.
+tap answers): **Next** (sequence of tokens), **Sum** (tap tiles to hit a number), **Memory** (lights
+flash), **Mirror** (complete the symmetric picture), **Arrows** (follow the arrows), **Scales** (weights).
+World 1 teaches three, each later world adds one. (A seventh kind, **Odd** — find the one flipped shape
+among four turned copies — was removed: players could not read the rule.)
 
 **Rune Hand** (Balatro-like) — 36 runes (1–9 × Fire/Wave/Leaf/Bolt), hand of 7, 4 hands, 3 discards.
 Play 1–5 runes as a combo (pair … sign ladder), score `(combo chips + rune values) × mult`, beat the

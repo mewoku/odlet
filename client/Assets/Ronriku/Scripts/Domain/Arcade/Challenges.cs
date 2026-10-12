@@ -11,7 +11,8 @@ namespace Ronriku.Domain.Arcade
     public enum ChallengeKind
     {
         Next = 0,    // what comes next in the row of tokens
-        Odd = 1,     // three are the same shape turned; one is mirrored
+        // 1 was "Odd" (find the flipped shape); removed because players could not read the rule. Values are
+        // explicit, so the remaining kinds keep their numbers.
         Sum = 2,     // tap the tiles that add up to the target
         Memory = 3,  // lights flash, tap them back
         Mirror = 4,  // pick the half that completes the mirror picture
@@ -21,7 +22,7 @@ namespace Ronriku.Domain.Arcade
     }
 
     /// <summary>
-    /// A token drawn in Next/Odd challenges, packed in an int:
+    /// A token drawn in Next challenges, packed in an int:
     /// bits 0-2 shape, 3-5 color, 6-7 count-1, 8-9 rotation (quarter turns clockwise).
     /// </summary>
     public static class Token
@@ -47,7 +48,7 @@ namespace Ronriku.Domain.Arcade
         public int[] Items { get; }
         /// <summary>Choice values (tokens, masks, numbers, cells). Empty for Sum/Memory (free selection).</summary>
         public int[] Options { get; }
-        /// <summary>Expected answer: option index (Next/Odd/Mirror/Scales), cell (Arrows) or bitmask (Sum/Memory).</summary>
+        /// <summary>Expected answer: option index (Next/Mirror/Scales), cell (Arrows) or bitmask (Sum/Memory).</summary>
         public int Answer { get; }
         /// <summary>Sum target / Arrows start cell / Scales question shape.</summary>
         public int Target { get; }
@@ -75,7 +76,6 @@ namespace Ronriku.Domain.Arcade
         public string Prompt => Kind switch
         {
             ChallengeKind.Next => "WHAT COMES NEXT?",
-            ChallengeKind.Odd => "ONE IS FLIPPED. FIND IT",
             ChallengeKind.Sum => $"TAP {Pick} THAT MAKE {Target}",
             ChallengeKind.Memory => "REMEMBER THE LIGHTS",
             ChallengeKind.Mirror => "COMPLETE THE MIRROR",
@@ -90,32 +90,12 @@ namespace Ronriku.Domain.Arcade
         public const int ArrowSize = 4;
         public const int MemorySize = 4;
 
-        /// <summary>Chiral shapes on a 4×4 grid (bit x + 4y): a mirror image is never a rotation.</summary>
-        public static readonly int[] ChiralShapes =
-        {
-            Bits((0, 0), (0, 1), (0, 2), (1, 2)),          // L
-            Bits((1, 0), (2, 0), (0, 1), (1, 1)),          // S
-            Bits((1, 0), (2, 0), (0, 1), (1, 1), (1, 2)),  // F
-            Bits((0, 0), (1, 0), (0, 1), (1, 1), (0, 2)),  // P
-            Bits((1, 0), (1, 1), (0, 2), (1, 2), (1, 3)),  // Y
-            Bits((0, 0), (0, 1), (1, 1), (1, 2), (1, 3)),  // N
-            Bits((0, 0), (1, 0), (2, 0), (2, 1), (3, 1))   // long Z
-        };
-
-        private static int Bits(params (int x, int y)[] cells)
-        {
-            int mask = 0;
-            foreach (var (x, y) in cells) mask |= 1 << (x + 4 * y);
-            return mask;
-        }
-
         public static Challenge Generate(ChallengeKind kind, long seed, int tier)
         {
             var rng = new DeterministicRandom(unchecked((ulong)seed));
             return kind switch
             {
                 ChallengeKind.Next => Next(ref rng, seed, tier),
-                ChallengeKind.Odd => Odd(ref rng, seed, tier),
                 ChallengeKind.Sum => Sum(ref rng, seed, tier),
                 ChallengeKind.Memory => Memory(ref rng, seed, tier),
                 ChallengeKind.Mirror => Mirror(ref rng, seed, tier),
@@ -191,41 +171,6 @@ namespace Ronriku.Domain.Arcade
                 cycle[i] = v;
             }
             return cycle;
-        }
-
-        // ------------------------------------------------------------------ Odd
-
-        private static Challenge Odd(ref DeterministicRandom rng, long seed, int tier)
-        {
-            int shapes = tier > 0 ? ChiralShapes.Length : 4;
-            int shape = ChiralShapes[rng.NextInt(shapes)];
-            int oddIndex = rng.NextInt(4);
-            var options = new int[4];
-            int lastRotation = -1;
-            for (int i = 0; i < 4; i++)
-            {
-                int rotation = rng.NextInt(4);
-                if (rotation == lastRotation) rotation = (rotation + 1) % 4;
-                lastRotation = rotation;
-                int grid = i == oddIndex ? PatternGrid.Apply(PatternRule.MirrorX, shape) : shape;
-                options[i] = Normalize(Rotate(grid, rotation));
-            }
-            return new Challenge(ChallengeKind.Odd, seed, tier, Array.Empty<int>(), options, oddIndex);
-        }
-
-        private static int Rotate(int grid, int quarterTurns)
-        {
-            for (int i = 0; i < quarterTurns; i++) grid = PatternGrid.Apply(PatternRule.Rotate90, grid);
-            return grid;
-        }
-
-        /// <summary>Moves a shape to the top-left so the four pictures line up.</summary>
-        public static int Normalize(int grid)
-        {
-            if (grid == 0) return 0;
-            while ((grid & 0x000F) == 0) grid >>= 4;
-            while ((grid & 0x1111) == 0) grid = PatternGrid.Apply(PatternRule.ShiftRight, PatternGrid.Apply(PatternRule.ShiftRight, PatternGrid.Apply(PatternRule.ShiftRight, grid)));
-            return grid;
         }
 
         // ------------------------------------------------------------------ Sum
