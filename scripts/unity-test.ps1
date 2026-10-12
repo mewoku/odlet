@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $workspace = Split-Path -Parent $PSScriptRoot
 $logs = Join-Path $workspace 'artifacts/logs'
 New-Item -ItemType Directory -Force $logs | Out-Null
-$unity = 'D:\6000.6.0f1\Editor\Unity.exe'
+$unity = if ($env:UNITY_EDITOR) { $env:UNITY_EDITOR } else { 'C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Unity.exe' }
 
 $arguments = @(
     '-batchmode',

@@ -47,7 +47,7 @@ from; the CLI no longer reads it.
    $env:RONRIKU_KEY_ALIAS     = "ronriku"
    $env:RONRIKU_KEYSTORE_PASS = Read-Host "keystore password"
    $env:RONRIKU_KEY_PASS      = $env:RONRIKU_KEYSTORE_PASS      # PKCS12: same password
-   & "D:\6000.6.0f1\Editor\Unity.exe" -batchmode -quit -projectPath "$PWD\client" `
+   & "C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Unity.exe" -batchmode -quit -projectPath "$PWD\client" `
        -executeMethod Ronriku.Editor.RonrikuBuild.BuildAndroidRelease -logFile "$PWD\Builds\android-release.log"
    Select-String -Path Builds\android-release.log -Pattern "RONRIKU_ANDROID_BUILD_OK|error"
    ```
@@ -56,8 +56,8 @@ from; the CLI no longer reads it.
 
 4. **Verify the APK is release-signed** with your key, not "Android Debug":
    ```powershell
-   $env:JAVA_HOME = "D:\6000.6.0f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK"
-   $bt = "D:\6000.6.0f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\build-tools\36.0.0"
+   $env:JAVA_HOME = "C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK"
+   $bt = "C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\build-tools\36.0.0"
    & "$bt\apksigner.bat" verify --print-certs Builds\Android\ODLET.apk     # DN must NOT be CN=Android Debug
    & "$bt\aapt2.exe" dump badging Builds\Android\ODLET.apk | Select-String "package:|targetSdk|uses-permission|native-code"
    ```
@@ -102,7 +102,7 @@ Rules for every update: same package `com.odlet.game`, **same signing key**, **h
 ## Release signing — reference
 
 - Script: `store/make-keystore.ps1` (keytool from Unity's bundled OpenJDK at
-  `D:\6000.6.0f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK\bin\keytool.exe`, RSA 4096,
+  `C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Data\PlaybackEngines\AndroidPlayer\OpenJDK\bin\keytool.exe`, RSA 4096,
   PKCS12, 10,000-day validity, alias `ronriku`; passwords passed via `:env`, never on the command line).
 - `client/Assets/Ronriku/Editor/RonrikuBuild.cs` → `ConfigureSigning()` reads:
   `RONRIKU_KEYSTORE` (path; must exist, else the build silently falls back to **debug signing**),
