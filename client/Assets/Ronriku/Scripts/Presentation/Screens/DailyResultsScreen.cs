@@ -21,8 +21,7 @@ namespace Ronriku.Presentation.Screens
         {
             _result = result;
             style.flexGrow = 1;
-            // See-through so the world swirl shows behind the numbers; the card stays dark enough to read.
-            style.backgroundColor = RonrikuTheme.WithAlpha(RonrikuTheme.Graphite, 0.8f);
+            // No fill, like the other full screens: the world swirl is the backdrop, and there is no band where the status-bar inset meets a card.
             style.paddingLeft = style.paddingRight = RonrikuTheme.Gutter;
             style.paddingTop = 16;
             style.paddingBottom = 16;

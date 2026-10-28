@@ -49,7 +49,7 @@ Blockers and not yet done:
 - Release IL2CPP arm64 APK is 21.5 MB, installs over the old v1.0 without a signature clash.
 - Played on device: map, Ice Dash (3 stars at par), Daily (Pattern, Shadow, Link, results, rating 1231 to 1253), Bosses, Shop, Me (online ranks live), Rune Hand charm pick and a played hand. PixelWipe and the swirl show on device.
 - Memory 275 MB PSS. Idle CPU on the map was 70-76 % of one core at a constant 60 fps; `FrameGovernor` (render every second frame after 2.5 s without input) brought it to 52-58 %.
-- Fixed from the pass: the SOLVED banner covered the trial title (now an accent flash), charm cards looked tan with weak contrast (opaque base), Daily results had a flat opaque background (now translucent) and said LOGIC where the rest of the game says LINK.
+- Fixed from the pass: the SOLVED banner covered the trial title (now an accent flash), charm cards looked tan with weak contrast (opaque base), Daily results had a flat opaque background and a bright strip at the status bar (now no fill, like the other screens) and said LOGIC where the rest of the game says LINK.
 - Web: `/daily/play` keeps a local streak and shows today's result again on return; `/play` offers it while Unity loads and when Unity fails to start.
 
 ## Honest revenue math
