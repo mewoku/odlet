@@ -2,6 +2,7 @@ using System;
 using Ronriku.Domain.Figures;
 using Ronriku.Domain.Player;
 using Ronriku.Presentation.Accessibility;
+using Ronriku.Presentation.Arcade;
 using Ronriku.Presentation.Components;
 using Ronriku.Presentation.Voxels;
 using UnityEngine;
@@ -158,6 +159,14 @@ namespace Ronriku.Presentation.Screens
             if (!context.Embedded) Add(footer);
 
             _clock = schedule.Execute(Tick).Every(250);
+
+            // Board and title land with a short overshoot so a trial never just appears.
+            if (!context.Embedded)
+            {
+                Juice.DealIn(titleLabel, 0, 40f);
+                Juice.DealIn(instructionLabel, 1, 40f);
+                Juice.DealIn(Body, 2, 60f);
+            }
         }
 
         protected int ElapsedMilliseconds => _finalElapsed >= 0
@@ -199,8 +208,19 @@ namespace Ronriku.Presentation.Screens
                 Feedback.Success();
                 HitGuardian();
                 Burst(Palette.Accent);
+                Juice.Punch(Body, 0.06f, 0.3f);
+                if (!_context.Embedded)
+                {
+                    Juice.Flash(Body, RonrikuTheme.WithAlpha(Palette.Accent, 0.22f), 0.4f);
+                    Juice.Punch(Continue, 0.1f, 0.35f);
+                }
             }
-            else Feedback.Error();
+            else
+            {
+                Feedback.Error();
+                Juice.Shake(Body, 10f, 0.4f);
+                Juice.Flash(Body, RonrikuTheme.WithAlpha(RonrikuTheme.Red, 0.3f), 0.35f);
+            }
         }
 
         /// <summary>How long an embedded BIG CARD stays on screen after it is solved / failed before it reports itself.</summary>

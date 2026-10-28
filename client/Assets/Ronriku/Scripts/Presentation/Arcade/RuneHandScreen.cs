@@ -70,6 +70,16 @@ namespace Ronriku.Presentation.Arcade
                 Glyphs.Shape(ctx.painter2D, SuitStyle.Glyph(card.Suit), glyph.contentRect.center, glyph.contentRect.width * 0.42f, color, 0);
             Add(glyph);
             Selected = false;
+
+            // Balatro-style idle sway: every rune rocks a little out of phase with its neighbours, more when lifted.
+            float phase = card.Value * 0.73f + (int)card.Suit * 1.9f;
+            schedule.Execute(() =>
+            {
+                if (MotionSettings.ReducedMotion) return;
+                float t = Time.realtimeSinceStartup;
+                float degrees = Mathf.Sin(t * 1.15f + phase) * (_selected ? 4.5f : 1.8f);
+                style.rotate = new Rotate(new Angle(degrees, AngleUnit.Degree));
+            }).Every(33);
         }
     }
 
@@ -514,6 +524,8 @@ namespace Ronriku.Presentation.Arcade
                 card.style.height = 108;
                 card.style.marginLeft = card.style.marginRight = 0;
                 card.style.marginBottom = 12;
+                // The gradient is translucent; without a dark base the default button grey shows through and the gold text washes out.
+                card.style.backgroundColor = RonrikuTheme.Surface;
                 card.style.backgroundImage = new StyleBackground(PixelTextures.DiagonalGradient(RonrikuTheme.WithAlpha(RonrikuTheme.Gold, 0.18f), RonrikuTheme.Surface));
                 card.style.backgroundSize = new BackgroundSize(Length.Percent(100), Length.Percent(100));
                 UiFactory.SetBorder(card, 3, RonrikuTheme.WithAlpha(RonrikuTheme.Gold, 0.6f));

@@ -137,19 +137,24 @@ namespace Ronriku.Editor
         }
 
         /// <summary>
-        /// Browser build embedded by the website (web/public/unity/Build/unity.*). Gzip with the
-        /// decompression fallback so any static server works without special headers.
+        /// Browser build embedded by the website (web/public/unity/Build/unity.*). Brotli with a real
+        /// Content-Encoding header (next.config.ts, deploy gateway) so the browser decompresses natively and
+        /// streams the wasm. Set ODLET_WEBGL_FALLBACK=1 for portal builds on hosts that cannot send the header
+        /// (gzip + JS decompression fallback) and ODLET_WEBGL_OUT to build somewhere other than web/public/unity.
         /// </summary>
         [MenuItem("RONRIKU/Build WebGL (Website)")]
         public static void BuildWebGL()
         {
             Verify();
-            string output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../web/public/unity"));
+            string custom = Environment.GetEnvironmentVariable("ODLET_WEBGL_OUT");
+            string output = Path.GetFullPath(string.IsNullOrEmpty(custom)
+                ? Path.Combine(Application.dataPath, "../../web/public/unity") : custom);
+            bool fallback = Environment.GetEnvironmentVariable("ODLET_WEBGL_FALLBACK") == "1";
             if (Directory.Exists(output)) Directory.Delete(output, true);
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+            PlayerSettings.WebGL.compressionFormat = fallback ? WebGLCompressionFormat.Gzip : WebGLCompressionFormat.Brotli;
             // Same-origin API calls follow the page scheme; the browser enforces mixed content itself.
             PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
-            PlayerSettings.WebGL.decompressionFallback = true;
+            PlayerSettings.WebGL.decompressionFallback = fallback;
             PlayerSettings.WebGL.nameFilesAsHashes = false;
             PlayerSettings.WebGL.dataCaching = true;
             PlayerSettings.WebGL.memorySize = 256;
@@ -189,6 +194,12 @@ namespace Ronriku.Editor
             bool icons = RonrikuIcon.TryApply(logSuccess: false);
             if (!icons && (buildOptions & BuildOptions.Development) == 0)
                 throw new BuildFailedException("Release build needs the app icons (RONRIKU/Apply Icons failed).");
+            // Machines whose Unity install lacks the Android modules point these at an external SDK/NDK/JDK.
+            string sdk = Environment.GetEnvironmentVariable("ODLET_ANDROID_SDK"), ndk = Environment.GetEnvironmentVariable("ODLET_ANDROID_NDK"),
+                jdk = Environment.GetEnvironmentVariable("ODLET_ANDROID_JDK");
+            if (!string.IsNullOrEmpty(sdk)) UnityEditor.Android.AndroidExternalToolsSettings.sdkRootPath = sdk;
+            if (!string.IsNullOrEmpty(ndk)) UnityEditor.Android.AndroidExternalToolsSettings.ndkRootPath = ndk;
+            if (!string.IsNullOrEmpty(jdk)) UnityEditor.Android.AndroidExternalToolsSettings.jdkRootPath = jdk;
             string output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../Builds/Android", fileName));
             Directory.CreateDirectory(Path.GetDirectoryName(output) ?? throw new InvalidOperationException());
             // Always write a fresh file: in-place APK updates leave dead space between zip entries.

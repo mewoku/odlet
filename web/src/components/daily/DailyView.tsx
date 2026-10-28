@@ -46,9 +46,14 @@ export function DailyView() {
             Same three puzzles for everyone today. Solve all three for +{EARN.dailyCompletion} shards, +{EARN.dailyStreakBonusPerDay} per streak day (cap +{EARN.dailyStreakBonusCap}).
           </p>
         </div>
-        <PixelButton href="/play" size="lg">
-          <PixelIcon name="play" /> Begin
-        </PixelButton>
+        <div className="flex flex-wrap gap-3">
+          <PixelButton href="/daily/play" size="lg">
+            <PixelIcon name="play" /> Play now
+          </PixelButton>
+          <PixelButton href="/play" size="lg" variant="secondary">
+            Full game
+          </PixelButton>
+        </div>
       </PixelPanel>
 
       <ol className="grid gap-4 md:grid-cols-3">

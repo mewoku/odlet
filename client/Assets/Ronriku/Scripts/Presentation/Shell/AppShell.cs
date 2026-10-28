@@ -29,6 +29,8 @@ namespace Ronriku.Presentation.Shell
         private readonly VisualElement _content;
         private readonly VisualElement _fullscreen;
         private readonly TopBar _topBar;
+        private readonly PixelWipe _wipe;
+        private bool _shown;
         private readonly List<(AppTab tab, VisualElement root, PixelIcon icon, Label label, VisualElement dot)> _tabButtons =
             new List<(AppTab, VisualElement, PixelIcon, Label, VisualElement)>();
         private readonly Func<AppTab, VisualElement> _screenFactory;
@@ -67,6 +69,10 @@ namespace Ronriku.Presentation.Shell
             _fullscreen.style.left = _fullscreen.style.right = _fullscreen.style.top = _fullscreen.style.bottom = 0;
             _fullscreen.style.display = DisplayStyle.None;
             Add(_fullscreen);
+
+            _wipe = new PixelWipe();
+            Add(_wipe);
+            FrameGovernor.Attach(this);
         }
 
         public void SetSafeArea(float left, float top, float right, float bottom)
@@ -82,8 +88,12 @@ namespace Ronriku.Presentation.Shell
 
         public void ShowTab(AppTab tab)
         {
+            // A refresh of the tab you are already on (shop purchase, sync) must not replay the wipe.
+            bool changed = _shown && (tab != Current || InFullscreen);
+            _shown = true;
             Current = tab;
             CloseFullscreen();
+            if (changed) _wipe.Play(Tabs[(int)tab].palette);
             _content.Clear();
             VisualElement screen = _screenFactory(tab);
             screen.style.flexGrow = 1;
@@ -109,6 +119,7 @@ namespace Ronriku.Presentation.Shell
             _fullscreen.style.display = DisplayStyle.Flex;
             _chrome.style.display = DisplayStyle.None;
             _ambient.SetPalette(palette);
+            _wipe.Play(palette);
             Feedback.Whoosh();
         }
 

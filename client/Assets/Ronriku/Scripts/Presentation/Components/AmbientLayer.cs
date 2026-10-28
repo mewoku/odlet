@@ -14,6 +14,7 @@ namespace Ronriku.Presentation.Components
         private readonly Vector2[] _anchors = { new Vector2(0.15f, 0.12f), new Vector2(0.9f, 0.45f), new Vector2(0.3f, 0.88f) };
         private readonly float[] _sizes = { 360f, 300f, 420f };
         private readonly float _start;
+        private readonly Swirl _swirl;
 
         public AmbientLayer(Palette palette)
         {
@@ -25,6 +26,9 @@ namespace Ronriku.Presentation.Components
             style.backgroundImage = new StyleBackground(
                 PixelTextures.VerticalGradient(RonrikuTheme.Background2, RonrikuTheme.Background, 4, 96));
             style.backgroundSize = new BackgroundSize(Length.Percent(100), Length.Percent(100));
+
+            _swirl = new Swirl();
+            Add(_swirl);
 
             for (int i = 0; i < _blobs.Length; i++)
             {
@@ -43,6 +47,7 @@ namespace Ronriku.Presentation.Components
 
         public void SetPalette(Palette palette)
         {
+            _swirl?.SetPalette(palette);
             Color[] tints =
             {
                 RonrikuTheme.WithAlpha(palette.Ambient, 0.95f),

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeader, PageShell } from "@/components/layout/PageShell";
+import { PageShell } from "@/components/layout/PageShell";
 import { UnityPlayer } from "@/components/play/UnityPlayer";
 import { WorldMap } from "@/components/play/WorldMap";
 import { SectionTitle } from "@/components/ui/PixelPanel";
@@ -12,7 +12,7 @@ export default async function PlayPage() {
   const build = await findUnityBuild();
   return (
     <PageShell palette="lab" wide>
-      <PageHeader kicker="Play · Adventure" title="World map" />
+      <h1 className="sr-only">Odlet — play free in your browser</h1>
       <UnityPlayer build={build} />
       <section className="mt-12" aria-label="Worlds">
         <SectionTitle kicker="5 worlds × 12 levels" title="Beat the guardians" />

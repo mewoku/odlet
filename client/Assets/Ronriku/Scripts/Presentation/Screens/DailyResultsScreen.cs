@@ -21,7 +21,8 @@ namespace Ronriku.Presentation.Screens
         {
             _result = result;
             style.flexGrow = 1;
-            style.backgroundColor = RonrikuTheme.Graphite;
+            // See-through so the world swirl shows behind the numbers; the card stays dark enough to read.
+            style.backgroundColor = RonrikuTheme.WithAlpha(RonrikuTheme.Graphite, 0.8f);
             style.paddingLeft = style.paddingRight = RonrikuTheme.Gutter;
             style.paddingTop = 16;
             style.paddingBottom = 16;
@@ -70,7 +71,7 @@ namespace Ronriku.Presentation.Screens
                 string status = !o.Solved ? (o.Moves > 0 ? "MISSED" : "SKIPPED")
                     : o.Par <= 0 ? "CORRECT"
                     : o.Moves <= o.Par ? "AT PAR" : $"{o.Moves} / {o.Par}";
-                Add(Row($"{i + 1}   {o.Kind.ToString().ToUpperInvariant()}  {o.Difficulty.ToString().ToUpperInvariant()}",
+                Add(Row($"{i + 1}   {o.Kind.ToString().ToUpperInvariant().Replace("LOGIC", "LINK")}  {o.Difficulty.ToString().ToUpperInvariant()}",
                     $"{status}   {FormatTime(o.ElapsedMilliseconds)}", o.Solved ? RonrikuTheme.OffWhite : RonrikuTheme.Muted));
             }
 

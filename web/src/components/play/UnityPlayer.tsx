@@ -116,7 +116,7 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
         className="px-panel relative overflow-hidden p-0"
         // The game is laid out for a 9:19.5 phone. Width follows the available height so the aspect
         // never breaks (a squashed viewport made battle cards overflow on desktop).
-        style={{ aspectRatio: "9 / 19.5", width: "min(100%, 520px, calc((100dvh - 250px) * 9 / 19.5))", minWidth: "300px" }}
+        style={{ aspectRatio: "9 / 19.5", width: "min(100%, 520px, calc((100dvh - 150px) * 9 / 19.5))", minWidth: "300px" }}
         // Keyboard (arrows / WASD) goes to the game as soon as it's clicked.
         onPointerDown={(e) => e.currentTarget.querySelector("canvas")?.focus()}
       >
@@ -134,12 +134,14 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
                 <p className="font-label text-[15px] text-danger">GAME FAILED TO START</p>
                 <p className="max-h-[120px] overflow-auto text-center text-[14px] break-words text-muted">{failure.slice(0, 400)}</p>
                 <RetryButtons onRetry={onRetry} />
+                <PixelButton href="/daily/play" size="sm">Play today&apos;s Daily instead</PixelButton>
               </>
             ) : (
               <>
                 <p className="font-pixel text-[24px] text-teal">ODLET</p>
                 <PixelProgress value={loadingProgression} label={loadingProgression >= 0.9 ? "STARTING" : "LOADING"} />
                 <p className="px-blink font-label text-[12px] text-muted">{loadingProgression >= 0.9 ? "WARMING UP…" : "DOWNLOADING ~12 MB…"}</p>
+                <PixelButton href="/daily/play" variant="secondary" size="sm">Play today&apos;s Daily now</PixelButton>
                 {stalled && (
                   <div className="flex flex-col items-center gap-3 text-center">
                     <p className="text-[14px] leading-5 text-muted">Taking longer than usual. A slow connection or an old cached copy can do this.</p>
