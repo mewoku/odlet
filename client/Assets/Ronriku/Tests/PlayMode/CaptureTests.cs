@@ -203,6 +203,85 @@ namespace Ronriku.Tests
             }
         }
 
+        /// <summary>
+        /// The CHECKMATE big card (Opera Game) on the Seeker aspect: start, a piece with its legal squares, the
+        /// defender's reply from the real game, a wrong move with its explanation, and the mate.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator CaptureCheckmateCard_OnSeeker()
+        {
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../../docs/evidence"));
+            Directory.CreateDirectory(folder);
+            string profileDir = Path.Combine(Path.GetTempPath(), "ronriku-capture-" + Guid.NewGuid().ToString("N"));
+            RuntimeConfig.ProfileDirectory = profileDir;
+            RuntimeConfig.OnlineEnabled = false;
+            RuntimeConfig.SkipHowTo = true;
+            try
+            {
+                SceneManager.LoadScene("Bootstrap");
+                yield return null;
+                var app = UnityEngine.Object.FindAnyObjectByType<RonrikuBootstrap>();
+                var document = app.GetComponent<UIDocument>();
+                var target = new RenderTexture(1080, 2400, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                document.panelSettings = UnityEngine.Object.Instantiate(document.panelSettings);
+                document.panelSettings.targetTexture = target;
+                var root = document.rootVisualElement;
+                yield return new WaitForSecondsRealtime(1.4f);
+
+                var bank = Ronriku.Domain.Chess.MatePuzzleBank.All;
+                int index = 0;
+                for (int i = 0; i < bank.Count; i++) if (bank[i].Title == "Opera Game") index = i;
+                var challenge = new Ronriku.Domain.Arcade.Challenge(Ronriku.Domain.Arcade.ChallengeKind.Classic, 1, 1,
+                    new[] { Ronriku.Domain.Arcade.Challenges.MateTrial, index }, Array.Empty<int>(), 1);
+                var host = new VisualElement();
+                host.style.position = Position.Absolute;
+                host.style.left = host.style.right = host.style.bottom = 0;
+                host.style.top = 300;
+                host.style.backgroundColor = Ronriku.Presentation.Components.RonrikuTheme.Background;
+                host.Add(new Ronriku.Presentation.Arcade.ChallengeView(challenge, Ronriku.Presentation.Components.RonrikuTheme.Lab));
+                root.Add(host);
+                yield return new WaitForSecondsRealtime(0.6f);
+                yield return Settle();
+                Save(target, folder, "mate", "1-start");
+
+                var screen = root.Q<Ronriku.Presentation.Screens.MateScreen>();
+                var first = screen.Session.Expected;
+                screen.Tap(first.From);
+                yield return Settle();
+                Save(target, folder, "mate", "2-selected");
+
+                screen.Tap(first.To);
+                yield return new WaitForSecondsRealtime(1.6f);
+                yield return Settle();
+                Save(target, folder, "mate", "3-reply");
+
+                var wrong = screen.Session.Position.LegalMoves().Find(m => m != screen.Session.Expected);
+                screen.Tap(wrong.From);
+                screen.Tap(wrong.To);
+                yield return new WaitForSecondsRealtime(0.6f);
+                yield return Settle();
+                Save(target, folder, "mate", "4-wrong");
+                yield return new WaitForSecondsRealtime(1.4f);
+
+                var last = screen.Session.Expected;
+                screen.Tap(last.From);
+                screen.Tap(last.To);
+                yield return new WaitForSecondsRealtime(0.8f);
+                yield return Settle();
+                Save(target, folder, "mate", "5-mate");
+                Assert.That(screen.Session.Solved, Is.True);
+
+                document.panelSettings.targetTexture = null;
+                target.Release();
+                UnityEngine.Object.Destroy(target);
+            }
+            finally
+            {
+                RuntimeConfig.Reset();
+                if (Directory.Exists(profileDir)) Directory.Delete(profileDir, true);
+            }
+        }
+
         private static IEnumerator Settle()
         {
             // WaitForEndOfFrame never resumes in batchmode; plain frames let the panel repaint.

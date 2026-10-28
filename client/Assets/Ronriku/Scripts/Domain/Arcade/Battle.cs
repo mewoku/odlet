@@ -13,6 +13,16 @@ namespace Ronriku.Domain.Arcade
         public int Hearts = 3;
         public int Tier;
         public ChallengeKind[] Pool;
+        /// <summary>
+        /// Bank index (<see cref="Ronriku.Domain.Chess.MatePuzzleBank.All"/>) of the CHECKMATE puzzle dealt as the first big
+        /// card of the fight; −1 keeps the older random Pattern/Shadow/Link big cards only.
+        /// </summary>
+        public int MatePuzzle = -1;
+        /// <summary>
+        /// True: the CHECKMATE card offers <see cref="Ronriku.Domain.Chess.MateChoices"/> to pick from (worlds 1–4);
+        /// false: the player moves the pieces on the board (the last world).
+        /// </summary>
+        public bool MateChoices = true;
         /// <summary>Adaptive heat this config was built with (recorded in proofs for replay).</summary>
         public int Heat;
 
@@ -23,6 +33,7 @@ namespace Ronriku.Domain.Arcade
             if (world >= 1) pool.Add(ChallengeKind.Mirror);
             if (world >= 2) pool.Add(ChallengeKind.Arrows);
             if (world >= 3) pool.Add(ChallengeKind.Scales);
+            if (world >= 4) pool.Add(ChallengeKind.Lines);
             return pool.ToArray();
         }
     }
@@ -106,7 +117,10 @@ namespace Ronriku.Domain.Arcade
             if (index % BigCardEvery == BigCardEvery - 1)
             {
                 CurrentHard = false;
-                return Challenges.Generate(ChallengeKind.Classic, DailyPlan.Mix(Config.Seed, 1000 + index), Config.Tier);
+                long bigSeed = DailyPlan.Mix(Config.Seed, 1000 + index);
+                if (Config.MatePuzzle >= 0 && index == BigCardEvery - 1)
+                    return Challenges.GenerateMate(Config.MatePuzzle, bigSeed, Config.Tier, Config.MateChoices);
+                return Challenges.Generate(ChallengeKind.Classic, bigSeed, Config.Tier);
             }
             CurrentHard = Combo >= HeatCombo;
             int tier = CurrentHard ? 1 : Config.Tier;

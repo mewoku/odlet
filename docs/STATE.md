@@ -2,18 +2,18 @@
 
 Product name: **ODLET** (Odlet in running text), formerly RONRIKU; site https://odlet.xyz (odlet.fun also owned). Code identifiers, the `Ronriku` Unity folders/namespaces and the `@ronriku/core` package keep the old name internally.
 
-Updated: 2026-09-26. Plan and contracts: `docs/PLAN_V2.md` (platform) and `docs/PLAN_V3.md` (arcade adventure, music).
+Updated: 2026-10-18. Plan and contracts: `docs/PLAN_V2.md` (platform) and `docs/PLAN_V3.md` (arcade adventure, music).
 
 ## v3 summary (arcade adventure)
 
 | Area | Status |
 |---|---|
-| Adventure | Each world: Battle ×4, Rune Hand ×3 (Balatro-style), Ice Dash ×2, Beat Crawl ×2, Boss (battle → rune hand). 6 battle micro-challenges (Odd removed). Flat middle difficulty; Rune Hand balanced by bot simulation (~68 % greedy win) |
+| Adventure | Each world: Battle ×4, Rune Hand ×3 (Balatro-style), Ice Dash ×2, Beat Crawl ×2, Boss (battle → rune hand). 7 battle micro-challenges, one new per world (W5 adds Lines; Odd removed). First BIG CARD of every battle = CHECKMATE: the 25 fights walk the real-game bank easy → hard without repeats (`docs/MATE_PUZZLES.md`). Rune Hand HINT also suggests discards; balance by bot simulation (~80 % greedy win). Content audit and review: `docs/CONTENT_REPORT.md` |
 | Music | Procedural chiptune: 9 tracks × 3 intensity layers, stingers, beat clock (Crawl syncs to it). Toggle in ME |
 | Pattern (Daily) | Examples act out their rule (rotate/flip/slide/invert) |
 | Tuning | `Resources/RonrikuTuning.asset` — Inspector knobs, linked from the RONRIKU object |
 | Server | `complete_arcade_level` (layout, unlock, physical time floors, proof stored); arcade proofs not yet replay-verified |
-| Tests | EditMode 50, PlayMode 6 (+Capture 2, Online 1), backend 38 |
+| Tests | EditMode 87, PlayMode 9 (+Capture 3, Review 1 contact sheet → `artifacts/review`, Online 1), backend 38 |
 
 ## v2 summary
 

@@ -184,7 +184,19 @@ namespace Ronriku.Presentation.Screens
             }
             path.SetPoints(points, cleared);
 
-            for (int s = 0; s < 3; s++) _canvas.Add(FloatingShard(new Vector2(width * (0.2f + 0.3f * s), points[Mathf.Min(_walkerIndex + 1 + s, points.Length - 1)].y - 40f), s));
+            // Shards float in the gap between two rows, to the side away from the path, so they never sit on a
+            // level node (a shard on top of a node swallowed the tap meant for the level).
+            var used = new HashSet<(int, int)>();
+            for (int s = 0; s < 3; s++)
+            {
+                int row = Mathf.Min(_walkerIndex + 1 + s, points.Length - 2);
+                Vector2 a = points[row], b = points[row + 1];
+                float pathX = (a.x + b.x) * 0.5f;
+                int side = pathX < width * 0.5f ? 1 : -1;
+                if (!used.Add((row, side)) && !used.Add((row, side = -side))) continue;
+                float x = Mathf.Clamp(pathX + side * width * 0.3f, 26f, width - 26f);
+                _canvas.Add(FloatingShard(new Vector2(x - 18f, (a.y + b.y) * 0.5f - 18f), s));
+            }
 
             _walker = new VoxelView(_avatarFigure, 64, 0f) { name = "walker" };
             _walker.style.position = Position.Absolute;
@@ -228,7 +240,7 @@ namespace Ronriku.Presentation.Screens
 
             var number = UiFactory.Heading(boss ? "BOSS" : (index + 1).ToString(), 9, RonrikuTheme.Muted);
             number.style.position = Position.Absolute;
-            number.style.top = -14;
+            number.style.top = -19;
             node.Add(number);
 
             node.RegisterCallback<ClickEvent>(_ => OnNode(index, unlocked));
@@ -325,6 +337,15 @@ namespace Ronriku.Presentation.Screens
             sub.style.unityTextAlign = TextAnchor.MiddleLeft;
             sub.style.marginTop = 2;
             info.Add(sub);
+            if ((mode == LevelMode.Battle || mode == LevelMode.Boss) && !LevelModes.MateChoices(_world))
+            {
+                var harder = UiFactory.Heading("CHECKMATE GETS HARDER: NO OPTIONS, MOVE THE PIECES YOURSELF", 10, RonrikuTheme.Gold);
+                harder.name = "mate-harder";
+                harder.style.unityTextAlign = TextAnchor.MiddleLeft;
+                harder.style.whiteSpace = WhiteSpace.Normal;
+                harder.style.marginTop = 4;
+                info.Add(harder);
+            }
 
             var buttons = UiFactory.Row();
             buttons.style.marginTop = 10;

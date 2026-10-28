@@ -21,9 +21,11 @@ namespace Ronriku.Presentation.Arcade
         private bool _done;
         private int _selection;
         private Label _sumLabel;
+        private Label _prompt;
         private readonly List<Button> _tiles = new List<Button>();
         private readonly Button[] _cells = new Button[16];
         private ArrowBoard _arrowBoard;
+        private LinesBoard _linesBoard;
 
         public event Action<int> Answered;
         /// <summary>Raised when a timed "show" phase (Memory) starts/ends, so the battle can pause its swing clock.</summary>
@@ -58,7 +60,7 @@ namespace Ronriku.Presentation.Arcade
                 return;
             }
 
-            var prompt = UiFactory.Heading(challenge.Prompt, 15, palette.Accent);
+            var prompt = _prompt = UiFactory.Heading(challenge.Prompt, 15, palette.Accent);
             prompt.name = "prompt";
             prompt.style.height = 30;
             prompt.style.flexShrink = 0;
@@ -84,6 +86,7 @@ namespace Ronriku.Presentation.Arcade
                 case ChallengeKind.Memory: BuildMemory(body); break;
                 case ChallengeKind.Mirror: BuildMirror(body); break;
                 case ChallengeKind.Arrows: BuildArrows(body); break;
+                case ChallengeKind.Lines: BuildLines(body); break;
                 default: BuildScales(body); break;
             }
         }
@@ -195,7 +198,11 @@ namespace Ronriku.Presentation.Arcade
                     for (int i = 0; i < _tiles.Count; i++)
                     {
                         bool right = (_challenge.Answer & (1 << i)) != 0;
-                        if (right) UiFactory.SetBorder(_tiles[i], 3, RonrikuTheme.Teal);
+                        if (right)
+                        {
+                            UiFactory.SetBorder(_tiles[i], 3, RonrikuTheme.Green);
+                            _tiles[i].style.backgroundColor = RonrikuTheme.WithAlpha(RonrikuTheme.Green, 0.3f);
+                        }
                         else if ((answer & (1 << i)) != 0) UiFactory.SetBorder(_tiles[i], 3, RonrikuTheme.Red);
                     }
                     break;
@@ -203,14 +210,24 @@ namespace Ronriku.Presentation.Arcade
                     for (int i = 0; i < 16; i++)
                     {
                         bool lit = (_challenge.Answer & (1 << i)) != 0;
-                        if (lit) _cells[i].style.backgroundColor = correct ? RonrikuTheme.Teal : RonrikuTheme.WithAlpha(RonrikuTheme.Teal, 0.6f);
+                        if (lit) _cells[i].style.backgroundColor = correct ? RonrikuTheme.Green : RonrikuTheme.WithAlpha(RonrikuTheme.Green, 0.6f);
                         else if ((answer & (1 << i)) != 0) _cells[i].style.backgroundColor = RonrikuTheme.Red;
                     }
                     break;
                 default:
                     if (_arrowBoard != null) _arrowBoard.PlayPath();
-                    if (_challenge.Answer >= 0 && _challenge.Answer < _optionFrames.Count) _optionFrames[_challenge.Answer](RonrikuTheme.Teal);
-                    if (!correct && answer >= 0 && answer < _optionFrames.Count) _optionFrames[answer](RonrikuTheme.Red);
+                    _linesBoard?.Reveal(correct ? -1 : answer);
+                    if (_challenge.Answer >= 0 && _challenge.Answer < _optionFrames.Count)
+                    {
+                        _optionFrames[_challenge.Answer](RonrikuTheme.Green);
+                        _optionButtons[_challenge.Answer].style.backgroundColor = RonrikuTheme.WithAlpha(RonrikuTheme.Green, 0.3f);
+                        if (correct) Juice.Punch(_optionButtons[_challenge.Answer], 0.12f);
+                    }
+                    if (!correct && answer >= 0 && answer < _optionFrames.Count)
+                    {
+                        _optionFrames[answer](RonrikuTheme.Red);
+                        _optionButtons[answer].style.backgroundColor = RonrikuTheme.WithAlpha(RonrikuTheme.Red, 0.25f);
+                    }
                     break;
             }
             if (!correct) Juice.Shake(this, 9f, 0.35f);
@@ -246,7 +263,7 @@ namespace Ronriku.Presentation.Arcade
 
         // ------------------------------------------------------------------ Classic (BIG CARD)
 
-        /// <summary>A full classic trial (Pattern / Shadow / Link) embedded in the card. Answer 1 = solved.</summary>
+        /// <summary>A full trial (Pattern / Shadow / Link / Checkmate) embedded in the card. Answer 1 = solved.</summary>
         private void BuildClassic()
         {
             style.paddingLeft = style.paddingRight = 2;
@@ -267,6 +284,11 @@ namespace Ronriku.Presentation.Arcade
             {
                 0 => new Screens.PatternPuzzleScreen(new Ronriku.Domain.Puzzles.PatternPuzzleGenerator().Generate(_challenge.Seed, difficulty, 0), context),
                 1 => new Screens.SpatialPuzzleScreen(new Ronriku.Domain.Puzzles.SpatialPuzzleGenerator().Generate(_challenge.Seed, difficulty, 0), context),
+                Challenges.MateTrial when Challenges.IsMateChoice(_challenge) =>
+                    new Screens.MateChoiceScreen(Ronriku.Domain.Chess.MatePuzzleBank.All[_challenge.Items[1]], _challenge.Seed, context),
+                // the full board is the last world's checkmate: say once more that the options are gone
+                Challenges.MateTrial => new Screens.MateScreen(Ronriku.Domain.Chess.MatePuzzleBank.All[_challenge.Items[1]], context,
+                    _challenge.Items.Length > 2 ? Screens.MateScreen.HarderNotice : null),
                 _ => new Screens.LogicPuzzleScreen(new Ronriku.Domain.Puzzles.LogicPuzzleGenerator().Generate(_challenge.Seed, difficulty, 0), context)
             };
             trial.name = "big-card";
@@ -338,7 +360,7 @@ namespace Ronriku.Presentation.Arcade
             target.style.height = 58;
             target.style.width = 200;
             body.Add(target);
-            _sumLabel = UiFactory.Heading("PICKED 0", 12, RonrikuTheme.Muted);
+            _sumLabel = UiFactory.Heading($"SUM 0  ·  0/{_challenge.Pick}", 12, RonrikuTheme.Muted);
             _sumLabel.style.marginBottom = 12;
             body.Add(_sumLabel);
             var tiles = WrapRow();
@@ -350,8 +372,9 @@ namespace Ronriku.Presentation.Arcade
                 tile.style.width = 92;
                 tile.style.height = 84;
                 tile.style.marginLeft = tile.style.marginRight = tile.style.marginTop = tile.style.marginBottom = 6;
-                tile.style.fontSize = 34;
-                tile.style.unityFontDefinition = RonrikuTheme.DisplayBold;
+                // Chakra Petch digits: the pixel display face draws 4 and 9 as ambiguous blocks at this size.
+                tile.style.fontSize = 40;
+                tile.style.unityFontDefinition = RonrikuTheme.BodyBold;
                 tile.style.color = RonrikuTheme.Text;
                 tile.style.backgroundColor = RonrikuTheme.Surface2;
                 UiFactory.SetBorder(tile, 3, RonrikuTheme.Line);
@@ -373,7 +396,7 @@ namespace Ronriku.Presentation.Arcade
             Juice.Punch(tile, 0.12f);
             int sum = Challenges.SumOf(_challenge.Items, _selection);
             int picked = Challenges.PopCount(_selection);
-            _sumLabel.text = $"PICKED {sum}";
+            _sumLabel.text = $"SUM {sum}  ·  {picked}/{_challenge.Pick}";
             _sumLabel.style.color = sum == _challenge.Target ? RonrikuTheme.Teal : sum > _challenge.Target ? RonrikuTheme.Red : RonrikuTheme.Muted;
             // Short grace period so a mis-tap can be undone before the answer locks in.
             if (picked == _challenge.Pick)
@@ -424,6 +447,8 @@ namespace Ronriku.Presentation.Arcade
                     _cells[i].SetEnabled(true);
                     UiFactory.Pressable(_cells[i]);
                 }
+                // The task changes from "remember" to "recall": say so, with the count.
+                if (!_done) _prompt.text = $"TAP THE {_challenge.Pick} LIGHTS";
                 Feedback.Whoosh();
                 Showing?.Invoke(false);
             }).StartingIn(1300 + 150 * _challenge.Pick);
@@ -471,6 +496,25 @@ namespace Ronriku.Presentation.Arcade
             {
                 var letter = UiFactory.Heading(((char)('A' + i)).ToString(), 26, RonrikuTheme.Yellow);
                 options.Add(OptionButton(i, letter, 96, 64));
+            }
+            body.Add(options);
+        }
+
+        // ------------------------------------------------------------------ Lines
+
+        private void BuildLines(VisualElement body)
+        {
+            var board = _linesBoard = new LinesBoard(_challenge, _palette.Accent);
+            board.style.width = 280;
+            board.style.height = 290;
+            board.style.marginBottom = 10;
+            body.Add(board);
+            var options = WrapRow();
+            float width = _challenge.Options.Length > 3 ? 72 : 96;
+            for (int i = 0; i < _challenge.Options.Length; i++)
+            {
+                var letter = UiFactory.Heading(((char)('A' + i)).ToString(), 26, RonrikuTheme.Yellow);
+                options.Add(OptionButton(i, letter, width, 64));
             }
             body.Add(options);
         }
@@ -596,10 +640,144 @@ namespace Ronriku.Presentation.Arcade
                 int option = Array.IndexOf(_c.Options, i);
                 Glyphs.Rect(p, tl, cell - 4, cell - 4, option >= 0 ? RonrikuTheme.WithAlpha(RonrikuTheme.Yellow, 0.18f) : RonrikuTheme.NearBlack);
                 var center = tl + new Vector2(cell - 4, cell - 4) * 0.5f;
+                // The ball sits under the arrow so the start cell's direction stays readable.
+                if (i == _ball) Glyphs.Shape(p, Token.Circle, center, cell * 0.4f, RonrikuTheme.WithAlpha(_accent, 0.85f));
                 Glyphs.Shape(p, Token.Arrow, center, cell * 0.28f, i == _c.Target ? RonrikuTheme.Text : RonrikuTheme.BlueGrey, _c.Items[i]);
-                if (i == _ball) Glyphs.Shape(p, Token.Circle, center, cell * 0.22f, _accent);
                 if (option >= 0) PixelLabel.DrawCentered(p, ((char)('A' + option)).ToString(), tl + new Vector2(cell * 0.2f, cell * 0.2f), cell * 0.035f, RonrikuTheme.Yellow);
             }
+        }
+    }
+
+    /// <summary>
+    /// Tangled lines: lettered starts at the top, lines that cross as clean X's on the way down, a star under one bottom
+    /// slot. After answering, the right line lights up and a dot runs along it (and a wrong pick shows its own line red).
+    /// </summary>
+    internal sealed class LinesBoard : VisualElement
+    {
+        private readonly Challenge _c;
+        private readonly Color _accent;
+        private int _good = -1;
+        private int _bad = -1;
+        private float _runner = -1f;
+
+        public LinesBoard(Challenge c, Color accent)
+        {
+            _c = c;
+            _accent = accent;
+            pickingMode = PickingMode.Ignore;
+            generateVisualContent += Draw;
+        }
+
+        public void Reveal(int wrongPick)
+        {
+            _good = _c.Answer;
+            _bad = wrongPick;
+            if (MotionSettings.ReducedMotion) { _runner = 1f; MarkDirtyRepaint(); return; }
+            Juice.Animate(this, 0.9f, t => { _runner = t; MarkDirtyRepaint(); }, null);
+        }
+
+        private List<Vector2> Path(int start, Rect r)
+        {
+            int n = _c.Pick, steps = _c.Items.Length;
+            float top = r.y + r.height * 0.15f, bottom = r.y + r.height * 0.85f;
+            float gap = (bottom - top) / steps;
+            float X(int slot) => r.x + (slot + 0.5f) * r.width / n;
+            var points = new List<Vector2>();
+            int at = start;
+            for (int s = 0; s < steps; s++)
+            {
+                int next = at;
+                int mask = _c.Items[s];
+                if (at < n - 1 && (mask & (1 << at)) != 0) next = at + 1;
+                else if (at > 0 && (mask & (1 << (at - 1))) != 0) next = at - 1;
+                float y = top + s * gap;
+                points.Add(new Vector2(X(at), y));
+                points.Add(new Vector2(X(at), y + gap * 0.22f));
+                points.Add(new Vector2(X(next), y + gap * 0.78f));
+                at = next;
+            }
+            points.Add(new Vector2(X(at), bottom));
+            return points;
+        }
+
+        private static void Stroke(Painter2D p, List<Vector2> points, float width, Color color)
+        {
+            p.strokeColor = color;
+            p.lineWidth = width;
+            p.lineJoin = LineJoin.Round;
+            p.lineCap = LineCap.Round;
+            p.BeginPath();
+            p.MoveTo(points[0]);
+            for (int i = 1; i < points.Count; i++) p.LineTo(points[i]);
+            p.Stroke();
+        }
+
+        private void Draw(MeshGenerationContext ctx)
+        {
+            var p = ctx.painter2D;
+            var r = contentRect;
+            int n = _c.Pick;
+            float slotW = r.width / n;
+            float width = Mathf.Clamp(slotW * 0.09f, 4f, 9f);
+            Glyphs.Rect(p, r.position, r.width, r.height, RonrikuTheme.NearBlack);
+
+            // Every line in the same colour (the puzzle is to trace it), with a dark rim so crossings read over/under.
+            for (int line = 0; line < n; line++)
+            {
+                if (line == _good || line == _bad) continue;
+                var path = Path(line, r);
+                Stroke(p, path, width + 5f, RonrikuTheme.NearBlack);
+                Stroke(p, path, width, RonrikuTheme.BlueGrey);
+            }
+            if (_bad >= 0)
+            {
+                var path = Path(_bad, r);
+                Stroke(p, path, width + 5f, RonrikuTheme.NearBlack);
+                Stroke(p, path, width, RonrikuTheme.Red);
+            }
+            if (_good >= 0)
+            {
+                var path = Path(_good, r);
+                Stroke(p, path, width + 5f, RonrikuTheme.NearBlack);
+                Stroke(p, path, width + 1f, RonrikuTheme.Green);
+                if (_runner >= 0) Glyphs.Shape(p, Token.Circle, Along(path, _runner), width * 1.6f, _accent);
+            }
+
+            // Letters on top, star and empty sockets at the bottom.
+            for (int slot = 0; slot < n; slot++)
+            {
+                float x = r.x + (slot + 0.5f) * slotW;
+                PixelLabel.DrawCentered(p, ((char)('A' + slot)).ToString(), new Vector2(x, r.y + r.height * 0.07f), r.height * 0.0075f, RonrikuTheme.Yellow);
+                var socket = new Vector2(x, r.y + r.height * 0.93f);
+                if (slot == _c.Target) Star(p, socket, r.height * 0.055f, RonrikuTheme.Gold);
+                else Glyphs.Rect(p, socket - Vector2.one * 3f, 6f, 6f, RonrikuTheme.Line);
+            }
+        }
+
+        private static Vector2 Along(List<Vector2> path, float t)
+        {
+            float total = 0;
+            for (int i = 1; i < path.Count; i++) total += Vector2.Distance(path[i - 1], path[i]);
+            float want = Mathf.Clamp01(t) * total;
+            for (int i = 1; i < path.Count; i++)
+            {
+                float d = Vector2.Distance(path[i - 1], path[i]);
+                if (want <= d) return Vector2.Lerp(path[i - 1], path[i], d <= 0 ? 0 : want / d);
+                want -= d;
+            }
+            return path[path.Count - 1];
+        }
+
+        private static void Star(Painter2D p, Vector2 c, float r, Color color)
+        {
+            var points = new Vector2[10];
+            for (int i = 0; i < 10; i++)
+            {
+                float a = -Mathf.PI / 2 + i * Mathf.PI / 5;
+                float rr = i % 2 == 0 ? r : r * 0.45f;
+                points[i] = c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * rr;
+            }
+            Glyphs.Poly(p, color, points);
         }
     }
 

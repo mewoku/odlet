@@ -1,0 +1,12 @@
+{
+  "matches": {
+    "Anderssen, Adolf|Dufresne, Jean|Berlin|3": {
+      "gid": "1018961", "white": "Adolf Anderssen", "black": "Jean Dufresne", "event": "Casual Game",
+      "source": "Schachzeitung, v7 n9, September 1852, pp338-339",
+      "note": "chessgames.com gives the score up to 20...Nxe7 (Schachzeitung, Sept 1852) and the mating finish 21.Qxd7+ Kxd7 22.Bf5+ Ke8 23.Bd7+ Kf8 24.Bxe7# as the ending published in Schachzeitung, Oct 1852, p383. Its first 40 plies are identical to the pgnmentor score and the published ending is identical to the last 7 plies."
+    }
+  },
+  "notes": {
+    "Anderssen, Adolf|Kieseritzky, Lionel|London|3": "chessgames.com notes that the score printed in La Regence (July 1851) ends at 19.Ke2; the complete score with 21.Nxg7+ Kd8 22.Qf6+ Nxf6 23.Be7# comes from The Chess Player (19 July 1851). That main line is identical to the pgnmentor score."
+  }
+}

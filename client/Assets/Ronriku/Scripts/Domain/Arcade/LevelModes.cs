@@ -16,6 +16,7 @@ namespace Ronriku.Domain.Arcade
     ///   dash       = DashLevel.Generate(Mix(seed, 33), tier)
     ///   crawl      = CrawlLevel.Generate(Mix(seed, 44), tier)
     ///   boss       = battle (HP 360 + 40w, tier 1) then cards (target 820 + 15w, two charms)
+    ///   checkmate  = first big card of every battle/boss; picked from options in worlds 1–4, moved by hand in the last
     /// </summary>
     public static class LevelModes
     {
@@ -48,13 +49,44 @@ namespace Ronriku.Domain.Arcade
             _ => "TWO PHASES · NO MERCY"
         };
 
+        /// <summary>Fights with a CHECKMATE big card (battles and the boss) in each world.</summary>
+        public static int MateFightsPerWorld => Array.FindAll(Layout, m => m == LevelMode.Battle || m == LevelMode.Boss).Length;
+
+        /// <summary>Checkmate fights in the whole adventure.</summary>
+        public static int MateFights => MateFightsPerWorld * LevelDef.WorldCount;
+
+        /// <summary>Play-order number (0 … <see cref="MateFights"/> − 1) of the fight at (world, index), or −1 for other modes.</summary>
+        public static int MateFight(int world, int index)
+        {
+            LevelMode mode = Layout[index];
+            if (mode != LevelMode.Battle && mode != LevelMode.Boss) return -1;
+            int before = 0;
+            for (int i = 0; i < index; i++) if (Layout[i] == LevelMode.Battle || Layout[i] == LevelMode.Boss) before++;
+            return world * MateFightsPerWorld + before;
+        }
+
+        /// <summary>
+        /// The CHECKMATE puzzle of a fight: fights walk the difficulty-ordered bank, so the adventure runs from mates in 2
+        /// to mates in 3 with sacrifices, and no game is dealt twice while the bank covers every fight.
+        /// </summary>
+        public static int MatePuzzle(int world, int index) =>
+            Ronriku.Domain.Chess.MatePuzzleBank.ForFight(MateFight(world, index), MateFights);
+
+        /// <summary>
+        /// Worlds 1–4 play the CHECKMATE card by picking moves from options; the last world hands over the board
+        /// (the player moves the pieces), announced on the map and on the card.
+        /// </summary>
+        public static bool MateChoices(int world) => world < LevelDef.WorldCount - 1;
+
         public static BattleConfig Battle(LevelDef def) => new BattleConfig
         {
             Seed = DailyPlan.Mix(def.Seed, 11),
             MonsterHp = 180 + 20 * def.World + 4 * def.Index,
             AttackMs = Math.Max(8000, 12000 - 500 * def.World),
             Tier = Tier(def.World, def.Index),
-            Pool = BattleConfig.PoolFor(def.World)
+            Pool = BattleConfig.PoolFor(def.World),
+            MatePuzzle = MatePuzzle(def.World, def.Index),
+            MateChoices = MateChoices(def.World)
         };
 
         public static CharmId[] CharmOffer(LevelDef def) => Charms.Offer(DailyPlan.Mix(def.Seed, 55), 3);
@@ -76,7 +108,9 @@ namespace Ronriku.Domain.Arcade
             MonsterHp = 360 + 40 * def.World,
             AttackMs = Math.Max(7500, 10500 - 500 * def.World),
             Tier = 1,
-            Pool = BattleConfig.PoolFor(def.World)
+            Pool = BattleConfig.PoolFor(def.World),
+            MatePuzzle = MatePuzzle(def.World, def.Index),
+            MateChoices = MateChoices(def.World)
         };
 
         public static CardsConfig BossCards(LevelDef def, params CharmId[] charms) => new CardsConfig

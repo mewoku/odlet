@@ -1,0 +1,9 @@
+{
+  "name": "mate-puzzles",
+  "private": true,
+  "type": "module",
+  "description": "Mines, verifies and builds the Checkmate puzzle bank from real games (see README.md).",
+  "dependencies": {
+    "chess.js": "1.4.0"
+  }
+}

@@ -15,6 +15,7 @@ namespace Ronriku.Domain.Puzzles
         {
             "pattern" => difficulty switch { PuzzleDifficulty.Easy => 20000, PuzzleDifficulty.Standard => 30000, _ => 45000 },
             "logic" => difficulty switch { PuzzleDifficulty.Easy => 30000, PuzzleDifficulty.Standard => 60000, _ => 90000 },
+            "mate" => difficulty switch { PuzzleDifficulty.Easy => 30000, PuzzleDifficulty.Standard => 50000, _ => 75000 },
             _ => SpatialPuzzleScorer.TargetMilliseconds(difficulty)
         };
 
@@ -22,6 +23,7 @@ namespace Ronriku.Domain.Puzzles
         {
             "pattern" => difficulty switch { PuzzleDifficulty.Easy => 45, PuzzleDifficulty.Standard => 60, _ => 90 },
             "logic" => difficulty switch { PuzzleDifficulty.Easy => 60, PuzzleDifficulty.Standard => 120, _ => 180 },
+            "mate" => difficulty switch { PuzzleDifficulty.Easy => 90, PuzzleDifficulty.Standard => 120, _ => 150 },
             _ => 90
         };
 

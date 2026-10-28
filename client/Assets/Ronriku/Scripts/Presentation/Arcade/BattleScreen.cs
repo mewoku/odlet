@@ -19,6 +19,9 @@ namespace Ronriku.Presentation.Arcade
         private static int ResolveRightMs => RonrikuTuning.Current.resolveRightMs;
         private static int ResolveWrongMs => RonrikuTuning.Current.resolveWrongMs;
         private static int StaggerMs => RonrikuTuning.Current.staggerMs;
+        private const float ArenaHeight = 150f;
+        /// <summary>How long "BIG CARD!" holds the stage on its own before the big card appears.</summary>
+        private const float BigCardIntroSeconds = 1.1f;
 
         private readonly BattleState _state;
         private readonly Palette _palette;
@@ -27,7 +30,7 @@ namespace Ronriku.Presentation.Arcade
         private readonly HpBar _hp;
         private readonly HeartsRow _hearts;
         private readonly ChipsMult _score;
-        private readonly Label _combo;
+        private readonly ComboMeter _combo;
         private readonly VisualElement _swingFill;
         private readonly VisualElement _cardSlot;
         private readonly VisualElement _overlay;
@@ -44,6 +47,7 @@ namespace Ronriku.Presentation.Arcade
         private bool _bigCard;
         private readonly DangerVignette _danger;
         private int _lastCombo;
+        private int _announcedBig = -1;
         private ArcadeResult _result;
         private bool _reported;
 
@@ -95,7 +99,7 @@ namespace Ronriku.Presentation.Arcade
             _hp.style.flexShrink = 0;
             Add(_hp);
 
-            _arena = new Arena(hero, monster, palette, 150);
+            _arena = new Arena(hero, monster, palette, ArenaHeight);
             Add(_arena);
 
             var swing = new VisualElement();
@@ -114,9 +118,10 @@ namespace Ronriku.Presentation.Arcade
             scoreRow.style.height = 54;
             scoreRow.style.flexShrink = 0;
             scoreRow.style.justifyContent = Justify.SpaceBetween;
-            _combo = UiFactory.Heading("COMBO 0", 13, RonrikuTheme.Muted);
-            _combo.style.width = 110;
-            _combo.style.unityTextAlign = TextAnchor.MiddleLeft;
+            _combo = new ComboMeter(palette.Accent);
+            _combo.style.flexGrow = 1;
+            _combo.style.maxWidth = 170;
+            _combo.style.marginRight = 10;
             scoreRow.Add(_combo);
             _score = new ChipsMult();
             scoreRow.Add(_score);
@@ -148,6 +153,20 @@ namespace Ronriku.Presentation.Arcade
         {
             if (_finished) return;
             _cardSlot.Clear();
+            bool big = _state.Current.Kind == ChallengeKind.Classic;
+            if (big && _announcedBig != _state.Index)
+            {
+                // "BIG CARD!" plays alone over the cleared slot, then the card slides in (never a banner over a puzzle)
+                _announcedBig = _state.Index;
+                bool harderMate = _state.Current.Items.Length > 2 && _state.Current.Items[0] == Challenges.MateTrial && !Challenges.IsMateChoice(_state.Current);
+                // centred on the empty card slot, clear of an ON FIRE banner that may still be playing over the arena
+                float slotMiddle = _overlay.WorldToLocal(_cardSlot.worldBound.center).y;
+                int pixel = harderMate ? 5 : 7; // the longer text needs smaller letters to fit the width
+                Juice.Banner(_overlay, harderMate ? "HARDER CHECKMATE!" : "BIG CARD!", RonrikuTheme.Gold,
+                    harderMate ? BigCardIntroSeconds + 0.4f : BigCardIntroSeconds, ShowChallenge, slotMiddle - pixel * 5f, pixel);
+                Feedback.Whoosh();
+                return;
+            }
             _view = new ChallengeView(_state.Current, _palette);
             _view.Answered += OnAnswered;
             _view.Showing += showing =>
@@ -160,15 +179,9 @@ namespace Ronriku.Presentation.Arcade
                 }
             };
             _cardSlot.Add(_view);
-            bool big = _state.Current.Kind == ChallengeKind.Classic;
             _arena.style.display = big ? DisplayStyle.None : DisplayStyle.Flex;
             _swingFill.parent.style.display = big ? DisplayStyle.None : DisplayStyle.Flex;
             _bigCard = big;
-            if (big)
-            {
-                Juice.Banner(_overlay, "BIG CARD!", RonrikuTheme.Gold, 0.8f);
-                Feedback.Whoosh();
-            }
             if (!big && _state.Combo >= BattleState.HeatCombo)
             {
                 var hot = UiFactory.Heading("HOT STREAK  +5 CHIPS", 10, RonrikuTheme.Gold);
@@ -224,6 +237,7 @@ namespace Ronriku.Presentation.Arcade
             _active = false;
             float thinkMs = (Time.realtimeSinceStartup - _challengeStart) * 1000f - _shownMs;
             HitResult hit = _state.Answer(answer, Mathf.Max(0, Mathf.RoundToInt(thinkMs)));
+            bool wasBig = _bigCard;
             if (_bigCard)
             {
                 _arena.style.display = DisplayStyle.Flex;
@@ -232,6 +246,7 @@ namespace Ronriku.Presentation.Arcade
             }
             else _view.Reveal(hit.Correct, answer);
             if (hit.Correct) Strike(hit);
+            else if (wasBig) MissBig();
             else Miss();
             schedule.Execute(() =>
             {
@@ -277,15 +292,30 @@ namespace Ronriku.Presentation.Arcade
             SetCombo();
         }
 
+        /// <summary>
+        /// A missed BIG CARD costs no heart (only the combo), so it must not look like one: no monster hit, no heart
+        /// break, just the combo dropping.
+        /// </summary>
+        private void MissBig()
+        {
+            Feedback.Error();
+            Juice.Popup(_overlay, _overlay.WorldToLocal(_combo.worldBound.center) + new Vector2(40, -30), "COMBO LOST", RonrikuTheme.Muted, 16, 30f, 0.8f);
+            _score.Set(0, 1);
+            SetCombo();
+        }
+
         private void SetCombo()
         {
             int combo = _state.Combo;
-            _combo.text = combo > 0 ? $"COMBO {combo}" : "COMBO 0";
-            _combo.style.color = combo >= 5 ? RonrikuTheme.Gold : combo >= 3 ? RonrikuTheme.Hex("FF8A3D") : combo > 0 ? _palette.Accent : RonrikuTheme.Muted;
-            _combo.style.fontSize = RonrikuTheme.TextSize(13) + Math.Min(combo, 5);
-            if (combo > 0) Juice.Punch(_combo, 0.3f);
+            _combo.Set(combo);
+            // Tier banners play over the arena (hero vs monster), never over the card the player is answering.
             if (combo > _lastCombo && (combo == BattleState.HeatCombo || combo == 5 || combo == 8))
-                Juice.Banner(_overlay, combo >= 8 ? "GODLIKE" : combo >= 5 ? "UNSTOPPABLE" : "ON FIRE", combo >= 5 ? RonrikuTheme.Gold : RonrikuTheme.Hex("FF8A3D"), 0.7f);
+            {
+                // anchored to the HP bar: it never moves, while the arena is hidden during big cards
+                float arenaMiddle = _overlay.WorldToLocal(_hp.worldBound.position).y + _hp.worldBound.height + ArenaHeight * 0.5f;
+                Juice.Banner(_overlay, combo >= 8 ? "GODLIKE" : combo >= 5 ? "UNSTOPPABLE" : "ON FIRE", _combo.TierColor(combo), 0.9f,
+                    top: arenaMiddle - 25f, pixel: 5);
+            }
             _lastCombo = combo;
             _danger.Set(_state.Hearts == 1 && !_state.Over);
             ComboChanged?.Invoke(combo);

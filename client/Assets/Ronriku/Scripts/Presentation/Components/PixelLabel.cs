@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -32,8 +32,10 @@ namespace Ronriku.Presentation.Components
         private void Draw(MeshGenerationContext context)
         {
             if (string.IsNullOrEmpty(_text)) return;
-            float width = _text.Length * 6f * _pixel - _pixel;
-            float height = 7f * _pixel;
+            // shrink (never grow) so long words like "HARDER CHECKMATE!" stay inside the element
+            float pixel = contentRect.width > 1f ? Mathf.Min(_pixel, contentRect.width / (_text.Length * 6f)) : _pixel;
+            float width = _text.Length * 6f * pixel - pixel;
+            float height = 7f * pixel;
             float x = _alignment == TextAnchor.MiddleLeft ? 0f : (contentRect.width - width) * 0.5f;
             float y = (contentRect.height - height) * 0.5f;
             var painter = context.painter2D;
@@ -47,14 +49,14 @@ namespace Ronriku.Presentation.Components
                 {
                     if (glyph[row][col] != '1') continue;
                     painter.BeginPath();
-                    painter.MoveTo(new Vector2(x + col * _pixel, y + row * _pixel));
-                    painter.LineTo(new Vector2(x + (col + 1) * _pixel, y + row * _pixel));
-                    painter.LineTo(new Vector2(x + (col + 1) * _pixel, y + (row + 1) * _pixel));
-                    painter.LineTo(new Vector2(x + col * _pixel, y + (row + 1) * _pixel));
+                    painter.MoveTo(new Vector2(x + col * pixel, y + row * pixel));
+                    painter.LineTo(new Vector2(x + (col + 1) * pixel, y + row * pixel));
+                    painter.LineTo(new Vector2(x + (col + 1) * pixel, y + (row + 1) * pixel));
+                    painter.LineTo(new Vector2(x + col * pixel, y + (row + 1) * pixel));
                     painter.ClosePath();
                     painter.Fill();
                 }
-                x += 6f * _pixel;
+                x += 6f * pixel;
             }
         }
 
@@ -109,7 +111,7 @@ namespace Ronriku.Presentation.Components
                 " :00000,00000,00000,00000,00000,00000,00000", "?:01110,10001,00010,00100,00100,00000,00100",
                 ">:01000,00100,00010,00001,00010,00100,01000", "<:00010,00100,01000,10000,01000,00100,00010",
                 "/:00001,00010,00010,00100,01000,01000,10000", "-:00000,00000,00000,11111,00000,00000,00000",
-                ".:00000,00000,00000,00000,00000,01100,01100"
+                ".:00000,00000,00000,00000,00000,01100,01100", "!:00100,00100,00100,00100,00100,00000,00100"
             };
             var result = new Dictionary<char, string[]>();
             foreach (string row in rows)

@@ -53,7 +53,7 @@ namespace Ronriku.Tests
         private static void PlayLevel(RonrikuBootstrap app, int world, int index) =>
             typeof(RonrikuBootstrap).GetMethod("PlayLevel", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(app, new object[] { world, index });
 
-        private static IEnumerator WaitFor(Func<bool> condition, float seconds, string what)
+        internal static IEnumerator WaitFor(Func<bool> condition, float seconds, string what)
         {
             float until = Time.realtimeSinceStartup + seconds;
             while (!condition())
@@ -72,7 +72,7 @@ namespace Ronriku.Tests
         }
 
         /// <summary>Answers the visible challenge correctly by tapping like a player.</summary>
-        private static IEnumerator Answer(VisualElement root, Challenge c)
+        internal static IEnumerator Answer(VisualElement root, Challenge c)
         {
             var view = root.Q<ChallengeView>();
             view.SkipIntro();
@@ -182,6 +182,15 @@ namespace Ronriku.Tests
                 int hands = cards.State.HandsLeft;
                 Click(root.Q<Button>("hint"));
                 yield return null;
+                if (root.Q<Label>("combo-name").text.StartsWith("WEAK HAND"))
+                {
+                    // the hint says to throw these runes away first
+                    int discards = cards.State.DiscardsLeft;
+                    Click(root.Q<Button>("discard"));
+                    yield return null;
+                    Assert.That(cards.State.DiscardsLeft, Is.EqualTo(discards - 1), "a discard hint can be followed");
+                    continue;
+                }
                 Assert.That(root.Q<Button>("play").enabledSelf, Is.True, "hint selects a playable hand");
                 Click(root.Q<Button>("play"));
                 yield return WaitFor(() => cards.State.HandsLeft < hands, 2f, "hand played");

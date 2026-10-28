@@ -322,6 +322,31 @@ namespace Ronriku.Domain.Arcade
         /// <summary>Hands left over after the killing blow: 2+ → ★★★, 1 → ★★, 0 → ★.</summary>
         public int Stars => !Won ? 0 : HandsLeft >= 2 ? 3 : HandsLeft == 1 ? 2 : 1;
 
+        /// <summary>
+        /// Hint for a weak hand: when even the best play cannot keep pace with the HP left (spread over the hands left)
+        /// and a discard remains, the runes worth throwing away — up to three that do not score in the best play,
+        /// lowest first (the balance bot's rule). 0 when playing is the better move.
+        /// </summary>
+        public int SuggestDiscard()
+        {
+            if (Over || DiscardsLeft <= 0) return 0;
+            var (mask, total) = BestPlay();
+            int need = (Config.Target - Score + HandsLeft - 1) / HandsLeft;
+            if (mask == 0 || total >= need) return 0;
+            ScoreBreakdown best = Preview(mask);
+            int keep = 0, played = 0;
+            for (int i = 0; i < _hand.Count; i++)
+                if ((mask & (1 << i)) != 0)
+                {
+                    if ((best.ScoringMask & (1 << played)) != 0) keep |= 1 << i;
+                    played++;
+                }
+            int discard = 0, taken = 0;
+            for (int i = 0; i < _hand.Count && taken < 3; i++)
+                if ((keep & (1 << i)) == 0) { discard |= 1 << i; taken++; }
+            return discard;
+        }
+
         /// <summary>Highest-scoring play in the current hand (brute force, ≤ 218 subsets). For hints and bots.</summary>
         public (int mask, int total) BestPlay()
         {

@@ -18,7 +18,9 @@ namespace Ronriku.Presentation.Arcade
         public static readonly string[] Slime = { "........", "...##...", "..####..", ".######.", ".#.##.#.", "########", "########", ".######." };
         public static readonly string[] Bat = { "........", "#......#", "##.##.##", "########", ".#.##.#.", "..####..", "...##...", "........" };
         public static readonly string[] Skeleton = { "..####..", ".######.", ".#.##.#.", ".######.", "..#..#..", "..####..", ".#.##.#.", ".#....#." };
-        public static readonly string[] Gem = { "...##...", "..####..", ".##..##.", "##.##.##", ".######.", "..####..", "...##...", "........" };
+        // A solid cut gem (the old ring-with-holes read as a little creature with eyes next to the crawl monsters).
+        public static readonly string[] Gem = { "........", ".######.", "########", "########", ".######.", "..####..", "...##...", "........" };
+        public static readonly string[] GemShine = { "........", "..#.....", ".##.....", "........", "........", "........", "........", "........" };
         public static readonly string[] Stairs = { "........", "......##", "......##", "....####", "....####", "..######", "..######", "########" };
         public static readonly string[] Door = { "..####..", ".#....#.", "#......#", "#......#", "#....#.#", "#......#", "#......#", "########" };
 
@@ -192,7 +194,9 @@ namespace Ronriku.Presentation.Arcade
             {
                 if ((ShownGems & (1 << g)) != 0) continue;
                 float bob = MotionSettings.ReducedMotion ? 0 : Mathf.Sin(Time.realtimeSinceStartup * 4f + g) * c * 0.05f;
-                Sprites.Draw(p, Sprites.Gem, CellTopLeft(level.Gems[g]) + new Vector2(c * 0.18f, c * 0.14f + bob), c * 0.64f, Glyphs.TokenColors[(g + 1) % Glyphs.TokenColors.Length]);
+                var gemAt = CellTopLeft(level.Gems[g]) + new Vector2(c * 0.18f, c * 0.14f + bob);
+                Sprites.Draw(p, Sprites.Gem, gemAt, c * 0.64f, Glyphs.TokenColors[(g + 1) % Glyphs.TokenColors.Length]);
+                Sprites.Draw(p, Sprites.GemShine, gemAt, c * 0.64f, RonrikuTheme.WithAlpha(Color.white, 0.85f));
             }
         }
     }
@@ -390,15 +394,11 @@ namespace Ronriku.Presentation.Arcade
                 float size = c * 0.7f * squash;
                 Sprites.Draw(p, sprite, CellTopLeft(e.Pos) + new Vector2((c - size) * 0.5f, c - size - c * 0.08f), size, color);
                 if (e.Hp > 1) Glyphs.Rect(p, CellTopLeft(e.Pos) + new Vector2(c * 0.1f, c * 0.06f), c * 0.8f, c * 0.08f, RonrikuTheme.Red);
-                int intent = _state.Intent(e);
-                if (intent >= 0)
+                int target = _state.NextStep(e);
+                if (target >= 0)
                 {
-                    int target = CrawlLevel.Step(e.Pos, intent);
-                    if (target >= 0)
-                    {
-                        Color warn = target == _state.Hero ? RonrikuTheme.Red : RonrikuTheme.WithAlpha(RonrikuTheme.Yellow, 0.75f);
-                        Glyphs.Shape(p, Token.Arrow, Vector2.Lerp(CellCenter(e.Pos), CellCenter(target), 0.62f), c * 0.16f, warn, intent);
-                    }
+                    Color warn = target == _state.Hero ? RonrikuTheme.Red : RonrikuTheme.WithAlpha(RonrikuTheme.Yellow, 0.75f);
+                    Glyphs.Shape(p, Token.Arrow, Vector2.Lerp(CellCenter(e.Pos), CellCenter(target), 0.62f), c * 0.16f, warn, _state.Intent(e));
                 }
             }
         }

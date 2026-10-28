@@ -48,7 +48,10 @@ namespace Ronriku.Domain.Daily
     {
         Pattern = 0,
         Spatial = 1,
-        Logic = 2
+        Logic = 2,
+        /// <summary>Checkmate puzzle from a real game. Played as a BIG CARD in battles; never part of the Daily or raids
+        /// (their answer keys and the TypeScript port know only Pattern/Spatial/Logic).</summary>
+        Mate = 3
     }
 
     public sealed class TrialSpec

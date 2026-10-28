@@ -54,12 +54,50 @@ namespace Ronriku.Tests
         }
 
         [Test]
+        public void Arrows_WrongOptionsAreOtherExits_SoNoneIsRuledOutAtAGlance()
+        {
+            int boards = 0, plausible = 0;
+            for (int tier = 0; tier < 2; tier++)
+            for (long seed = 1; seed <= 2000; seed++)
+            {
+                Challenge c = Challenges.Generate(ChallengeKind.Arrows, seed * 7919, tier);
+                int exits = Enumerable.Range(0, c.Items.Length).Count(cell => cell != c.Target && Challenges.PointsOut(c.Items, cell));
+                boards++;
+                if (c.Options.All(o => Challenges.PointsOut(c.Items, o))) plausible++;
+                else Assert.That(exits, Is.LessThan(3), $"t{tier} s{seed}: a pointing-in distractor although the board had enough exits");
+            }
+            Assert.That(plausible / (double)boards, Is.GreaterThan(0.75), "most cards offer three real exits (the rest have fewer exits on the board)");
+        }
+
+        [Test]
         public void Battle_PoolsNoLongerContainTheRemovedOddKind()
         {
             // ChallengeKind value 1 was Odd; it must not exist any more and worlds grow 3 → 4 → 5 → 6 kinds.
             Assert.That(System.Enum.IsDefined(typeof(ChallengeKind), 1), Is.False);
-            for (int world = 0; world < 4; world++)
-                Assert.That(BattleConfig.PoolFor(world), Has.Length.EqualTo(3 + world), $"world {world}");
+            for (int world = 0; world < LevelDef.WorldCount; world++)
+                Assert.That(BattleConfig.PoolFor(world), Has.Length.EqualTo(3 + world), $"world {world}: every world adds one kind");
+            Assert.That(BattleConfig.PoolFor(4), Does.Contain(ChallengeKind.Lines), "world 5 teaches the tangled lines");
+        }
+
+        [Test]
+        public void Lines_OneLineReachesTheStar_NeverStraightDown_AndCrossesOthers()
+        {
+            for (int tier = 0; tier < 2; tier++)
+            for (long seed = 1; seed <= 2000; seed++)
+            {
+                Challenge c = Challenges.Generate(ChallengeKind.Lines, seed * 7919, tier);
+                string where = $"t{tier} s{seed}";
+                Assert.That(c.Pick, Is.EqualTo(tier > 0 ? 4 : 3), where);
+                Assert.That(c.Options, Is.EqualTo(Enumerable.Range(0, c.Pick).ToArray()), where);
+                var ends = Enumerable.Range(0, c.Pick).Select(s => Challenges.LineEnd(c.Items, c.Pick, s, out _)).ToList();
+                Assert.That(ends.Distinct().Count(), Is.EqualTo(c.Pick), where + ": lines never merge");
+                Assert.That(ends.Count(e => e == c.Target), Is.EqualTo(1), where + ": exactly one line reaches the star");
+                Assert.That(Challenges.LineEnd(c.Items, c.Pick, c.Answer, out int crossings), Is.EqualTo(c.Target), where);
+                Assert.That(c.Answer, Is.Not.EqualTo(c.Target), where + ": the line right above the star is a trap, not the answer");
+                Assert.That(crossings, Is.GreaterThanOrEqualTo(tier > 0 ? 3 : 2), where);
+                foreach (int mask in c.Items)
+                    Assert.That(mask & (mask >> 1), Is.Zero, where + ": two swaps never share a line, so crossings are clean X's");
+            }
         }
 
         [Test]
@@ -179,6 +217,46 @@ namespace Ronriku.Tests
             float rate = wins / (float)games;
             TestContext.WriteLine($"greedy bot card win rate {rate:P0} ({wins}/{games}); per world {string.Join(",", perWorld)}");
             Assert.That(rate, Is.InRange(0.5f, 0.95f));
+        }
+
+        /// <summary>
+        /// HINT is a good teacher: a player who always follows it (discard when it says so, else play its pick) wins far
+        /// more card fights than one who only ever plays the best hand, and its discards are always legal.
+        /// </summary>
+        [Test]
+        public void Cards_FollowingHint_IncludingItsDiscards_BeatsPlayOnly()
+        {
+            int follow = 0, playOnly = 0;
+            for (int w = 0; w < LevelDef.WorldCount; w++)
+            for (int i = 0; i < LevelDef.LevelsPerWorld; i++)
+            {
+                LevelMode mode = LevelModes.For(i);
+                if (mode != LevelMode.Cards && mode != LevelMode.Boss) continue;
+                LevelDef def = LevelDef.For(w, i);
+                CharmId[] offer = LevelModes.CharmOffer(def);
+                for (int pick = 0; pick < offer.Length; pick++)
+                {
+                    var config = mode == LevelMode.Boss ? LevelModes.BossCards(def, offer[pick], offer[(pick + 1) % 3]) : LevelModes.Cards(def, offer[pick]);
+                    var a = new CardsState(config);
+                    while (!a.Over)
+                    {
+                        int discard = a.SuggestDiscard();
+                        if (discard != 0)
+                        {
+                            Assert.That(Challenges.PopCount(discard), Is.InRange(1, 3));
+                            Assert.That(a.DiscardsLeft, Is.GreaterThan(0));
+                            Assert.That(a.Discard(discard), Is.True);
+                        }
+                        else a.Play(a.BestPlay().mask);
+                    }
+                    var b = new CardsState(config);
+                    while (!b.Over) b.Play(b.BestPlay().mask);
+                    if (a.Won) follow++;
+                    if (b.Won) playOnly++;
+                }
+            }
+            TestContext.WriteLine($"follow-hint wins {follow}, play-only wins {playOnly}");
+            Assert.That(follow, Is.GreaterThan(playOnly));
         }
 
         private static bool PlayGreedy(CardsConfig config)
