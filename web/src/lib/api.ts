@@ -11,6 +11,7 @@ import { demoBossEvents, demoCollection, demoFigures, demoFriends, demoLeaderboa
 import { dailyFromRows, worldsFromLevels, worldsFromSummary, type ProfileStats } from "./profile";
 import type { Currency, FigureRecord, FriendRow, LeaderboardRow, LeaderboardScope, Listing, Profile, Rarity, Sourced, Tier } from "./types";
 import { dayNumber, shelfForDay, type ShelfItem } from "./shelf";
+import { parseBank, toWireOutcomes, type DailyBank, type DailyOutcomeWire, type TrialRun } from "./dailyRun";
 
 /** Stable snake_case RPC errors (backend/README.md) → player-facing text. */
 const RPC_ERRORS: Record<string, string> = {
@@ -26,6 +27,11 @@ const RPC_ERRORS: Record<string, string> = {
   mint_required_for_sol_listing: "Mint the figure before listing it for SOL.",
   minted_figures_list_for_sol: "Minted figures can only be listed for SOL.",
   no_pending_request: "That request is gone.",
+  wrong_day: "The Daily rolled over. Reload to play today's.",
+  invalid_outcomes: "That run could not be checked.",
+  implausible_time: "That run was too fast to be real.",
+  puzzle_not_published: "Today's Daily is not published yet. Try again soon.",
+  profile_missing: "Your account is not ready yet. Try again.",
 };
 
 export class BackendUnavailableError extends Error {
@@ -49,6 +55,7 @@ export const RPC = {
   setHandle: (handle: string) => ["update_profile", { p_handle: handle }] as const,
   updateProfile: (handle: string | null, displayName: string | null) =>
     ["update_profile", { p_handle: handle, p_display_name: displayName }] as const,
+  submitDaily: (day: number, outcomes: readonly DailyOutcomeWire[]) => ["submit_daily", { p_day: day, p_outcomes: outcomes }] as const,
   /** Migration 20260927000005_profile.sql. */
   profileStats: (handle: string, days = 7) => ["profile_stats", { p_handle: handle, p_days: days }] as const,
 };
@@ -202,6 +209,18 @@ export async function fetchMyProfile(): Promise<Profile | null> {
   if (!row) throw new Error("ensure_profile returned no profile.");
   const enc = await encodingsFor(c, [str(row.avatar_figure_id)]);
   return mapProfile(row, enc.get(String(row.avatar_figure_id)) ?? null);
+}
+
+/**
+ * Banks a Daily played in the browser: guest sign-in if needed, then `submit_daily`, which replays every
+ * answer on the server. The first submission for a day counts; later ones return the stored result.
+ */
+export async function bankDaily(day: number, runs: readonly TrialRun[]): Promise<DailyBank> {
+  const c = await requireLive();
+  await signInAsGuest();
+  check(await c.rpc("ensure_profile")); // submit_daily needs the profile row
+  const [fn, args] = RPC.submitDaily(day, toWireOutcomes(runs));
+  return parseBank(check(await c.rpc(fn, args)));
 }
 
 export async function setHandle(handle: string): Promise<void> {

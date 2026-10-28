@@ -41,6 +41,29 @@ describe("client payload contract (exact Unity shapes)", () => {
     })).toMatchObject({ result: "won" });
   });
 
+  it("submit_daily takes what the browser Daily sends: a wrong Pattern pick, a skipped trial, a solve at the 800 ms floor", async () => {
+    const p = await newPlayer();
+    const [pat, , log] = dailyPlan(today()).trials.map(answerFor) as [number, number[], number[]];
+    const p_outcomes = [
+      { kind: "Pattern", elapsed_ms: 9000, resets: 0, moves: 1, answer: (pat + 1) % 4 },
+      { kind: "Spatial", elapsed_ms: 90000, resets: 0, moves: 0, answer: null },
+      { kind: "Logic", elapsed_ms: 800, resets: 2, moves: log.length - 1, answer: log },
+    ];
+    const r = await rpc(p.db, "submit_daily", { p_day: today(), p_outcomes });
+    expect(r).toMatchObject({ counted: true, solved: 1, streak: 1 });
+    expect(r.outcomes.map((o: { solved: boolean }) => o.solved)).toEqual([false, false, true]);
+    expect(r.outcomes[0].points).toBe(0);
+    expect(r.outcomes[2]).toMatchObject({ resets: 2, points: 1300 + Math.trunc((60000 - 800) / 100) - 240 });
+    // The first run counts: a second submit returns the stored one.
+    expect(await rpc(p.db, "submit_daily", { p_day: today(), p_outcomes })).toMatchObject({ counted: false, solved: 1 });
+  });
+
+  it("submit_daily refuses a solve faster than 800 ms", async () => {
+    const p = await newPlayer();
+    const outcomes = dailyOutcomes(today()).map((o, i) => (i === 0 ? { ...o, elapsed_ms: 799 } : o));
+    expect(await rpcError(p.db, "submit_daily", { p_day: today(), p_outcomes: outcomes })).toMatch(/implausible_time/);
+  });
+
   it("submit_daily compares kind case-insensitively", async () => {
     const p = await newPlayer();
     const outcomes = dailyOutcomes(today()).map((o) => ({ ...o, kind: o.kind.toLowerCase() }));

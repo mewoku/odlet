@@ -10,8 +10,8 @@ select is(
 select is(
   (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef
-      and not coalesce(p.proconfig @> array['search_path=public'], false)),
-  0, 'every security definer function pins search_path = public');
+      and not coalesce(p.proconfig @> array['search_path=public'] or p.proconfig @> array['search_path=public, auth'], false)),
+  0, 'every security definer function pins search_path to public (delete_my_account also needs auth)');
 
 select is(
   (select count(*)::int from information_schema.role_table_grants
@@ -34,7 +34,7 @@ select is(
       and p.proname not in ('daily_day', 'leaderboard', 'ensure_profile', 'update_profile', 'complete_level',
         'submit_daily', 'buy_figure_shards', 'enter_boss', 'finish_boss', 'list_figure', 'cancel_listing',
         'buy_listing', 'send_friend_request', 'respond_friend_request', 'remove_friend', 'list_friends',
-        'complete_arcade_level', 'profile_stats')),
+        'complete_arcade_level', 'profile_stats', 'delete_my_account')),
   null::text[], 'only allowlisted RPCs are executable by anon/authenticated');
 
 select is(

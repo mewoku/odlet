@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Three reasoning trials a day, an adventure of voxel monsters and bosses, and collectible voxel figures on Solana devnet.",
   applicationName: "Odlet",
   openGraph: { title: "Odlet", siteName: "Odlet", description: "Pixel reasoning game for Solana Seeker and the web.", type: "website", url: "/" },
-  twitter: { card: "summary", title: "Odlet", description: "Pixel reasoning game for Solana Seeker and the web." },
+  twitter: { card: "summary_large_image", title: "Odlet", description: "Pixel reasoning game for Solana Seeker and the web." },
 };
 
 export const viewport: Viewport = {

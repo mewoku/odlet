@@ -35,13 +35,22 @@ Branch `odlet-polish` = `site-playtest-feedback` (web work) merged with `origin/
 - Unity `Library` is a junction to `D:\unity-cache\RONRIKU\Library` (C: had 7 GB free). Builds go to `D:\odlet-build`.
 
 - Trial screens (Logic, Pattern, Spatial share `TrialScreenBase`): title/board deal in, SOLVED banner plus punch on a win, shake and red flash on a miss. Compiles, EditMode 89/89. Rebuilt WebGL (Brotli, 9.1 MB) and checked a Pattern miss in Chrome: pick marked red, answer teal, Continue shown.
-- `/daily/play` (new, `web/src/components/daily/LiteDaily.tsx`): today's Daily playable at once in plain DOM/SVG over `@ronriku/core`, no Unity. Pattern (tap or keys 1-4), Spatial (buttons or arrows), Link (drag, tap or arrows), then a results card with a copyable share grid. Also the base for the fridge/TV fallback: arrow keys drive everything. Results stay on device, no server submit yet. Played all three trials in Chrome; `pnpm --filter web test` 136/136, lint clean. The Daily page now has Play now and Full game buttons.
+- `/daily/play` (new, `web/src/components/daily/LiteDaily.tsx`): today's Daily playable at once in plain DOM/SVG over `@ronriku/core`, no Unity. Pattern (tap or keys 1-4), Spatial (buttons or arrows), Link (drag, tap or arrows), then a results card with a copyable share grid. Arrow keys drive everything. Superseded below: runs now bank to the server. Played all three trials in Chrome; `pnpm --filter web test` 136/136, lint clean. The Daily page now has Play now and Full game buttons.
 
 Blockers and not yet done:
 
 - Not deployed. `web/public/unity` is gitignored; the new build must be copied to the server by the user, and the gateway nginx file replaced and the gateway recreated.
-- `/daily/play` exists, but it is not yet shown while Unity loads on `/play`, not submitted to the server, and untested on a real or emulated Tizen/TV browser.
+- Fridge/TV browser support is dropped (it was a joke); `/daily/play` stays as the instant path for any slow or old browser.
 
+
+## Web Daily to ranked, one account (2026-10-29)
+
+- `/daily/play` now plays by the game's rules (one tap on Pattern, SKIP after the time limit, Undo/Reset on Spatial, CLEAR counts as a restart) and banks the run: guest sign-in, `ensure_profile`, `submit_daily`. The server replays the answers; the page sends no "solved" flag. Result panel: score, rank today, rating change, streak, then a handle form while the name is still the generated `P_...` one. Same-day reload shows the stored result and never resubmits; an already-counted reply never replaces a counted one. Brand rule kept: no shards or reward text on the Daily surface.
+- Payload and parsing live in `web/src/lib/dailyRun.ts` (tests: 800 ms floor, clamps, null for skipped, no aliasing). `backend/tests/gameplay.test.ts` gained two contract tests for exactly what the browser sends. Backend suite on a local stack: 39/40; the one failure is the wallet edge function, which that minimal stack does not run.
+- Played in Chrome against a local Supabase (production untouched): Pattern miss, Spatial solved, Link solved with a DFS driving the arrow keys, banked, name saved, reload. Found and fixed one bug there: guest sign-in inside the bank call re-fired the auto-bank effect, so a second submit raced the first and showed "already counted" on a first run.
+- One account across site and game: `web/src/lib/unityBridge.ts` publishes the site session as `window.__odletSession`; `OdletHost.jslib` and `HostSession.cs` hand it to `SupabaseClient`, which adopts it on WebGL (never stores it, never refreshes it; an expired host token throws `session_expired` instead of silently starting a new account). `/play` makes the site guest while the game downloads. The site session wins over an older Unity-only guest on WebGL, so an old WebGL-only guest is orphaned. EditMode tests in `HostSessionTests.cs`.
+- Link previews: `opengraph-image` for the site and for `/daily/play` (per-day pixel glyph, brand palette), Twitter card `summary_large_image`.
+- Local test stack tips: Docker Desktop's disk is on D: (`%LOCALAPPDATA%\Docker\wsl\disk` is a junction to `D:\docker-data\disk`). The HDD makes DB init exceed the health check, so use `npx supabase start --ignore-health-check -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`.
 
 ## Android on the Pixel 6a (2026-10-28)
 

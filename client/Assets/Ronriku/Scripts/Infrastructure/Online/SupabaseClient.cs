@@ -70,6 +70,8 @@ namespace Ronriku.Infrastructure.Online
         private const string SessionKey = "ronriku.session";
         private readonly OnlineConfig _config;
         private Session _session;
+        // True while _session is the hosting page's session: it is never persisted and never refreshed here.
+        private bool _hosted;
 
         [Serializable]
         private sealed class Session
@@ -83,17 +85,60 @@ namespace Ronriku.Infrastructure.Online
         public SupabaseClient(OnlineConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            string saved = PlayerPrefs.GetString(SessionKey, string.Empty);
-            if (!string.IsNullOrEmpty(saved)) _session = JsonUtility.FromJson<Session>(saved);
+            _session = LoadSaved();
         }
 
-        public string UserId => _session?.user_id;
+        public string UserId
+        {
+            get
+            {
+                AdoptHostSession();
+                return _session?.user_id;
+            }
+        }
+
+        private static Session LoadSaved()
+        {
+            string saved = PlayerPrefs.GetString(SessionKey, string.Empty);
+            return string.IsNullOrEmpty(saved) ? null : JsonUtility.FromJson<Session>(saved);
+        }
+
+        /// <summary>
+        /// On the website the page owns the account: its session wins over a stored one, so the Daily played
+        /// in the browser and the game share rating and streak. The page keeps the token fresh (the refresh
+        /// token stays there: two refreshers on one token would revoke each other).
+        /// </summary>
+        private void AdoptHostSession()
+        {
+            string json = HostSession.Reader?.Invoke();
+            if (string.IsNullOrEmpty(json))
+            {
+                if (_hosted)
+                {
+                    _hosted = false; // the page signed out: back to the stored identity
+                    _session = LoadSaved();
+                }
+                return;
+            }
+            Session host;
+            try { host = JsonUtility.FromJson<Session>(json); }
+            catch (ArgumentException) { return; }
+            if (host == null || string.IsNullOrEmpty(host.access_token) || string.IsNullOrEmpty(host.user_id)) return;
+            if (_hosted && _session != null && _session.access_token == host.access_token) return;
+            host.refresh_token = null;
+            _session = host;
+            _hosted = true;
+        }
 
         /// <summary>Valid access token: reuses, refreshes, or signs in anonymously.</summary>
         public async Task EnsureSessionAsync()
         {
+            AdoptHostSession();
             long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             if (_session != null && _session.expires_at - 60 > now) return;
+            // The page refreshes its token well before expiry; if it has not, wait for it rather than
+            // quietly starting a second anonymous account.
+            if (_hosted) throw new OnlineException("session_expired", 401);
             if (_session?.refresh_token != null)
             {
                 try
@@ -126,6 +171,7 @@ namespace Ronriku.Infrastructure.Online
         public void SignOut()
         {
             _session = null;
+            _hosted = false;
             PlayerPrefs.DeleteKey(SessionKey);
         }
 

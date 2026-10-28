@@ -9,6 +9,7 @@ import { VoxelViewer } from "../figure/VoxelViewer";
 import { demoFigures } from "@/lib/demo/data";
 import type { UnityBuildFiles } from "@/lib/server/unityBuild";
 import { installMasterGain, readVolume, setVolume, type VolumeState } from "./gameAudio";
+import { startUnitySessionBridge } from "@/lib/unityBridge";
 
 // Wrap AudioContext before the Unity loader can create one (module eval runs before any effect).
 if (typeof window !== "undefined") installMasterGain();
@@ -69,6 +70,7 @@ function UnityFrame({ build, onRetry }: { build: UnityBuildFiles; onRetry: () =>
   });
   const [dpr, setDpr] = useState(1);
   useEffect(() => setDpr(Math.min(2, window.devicePixelRatio || 1)), []);
+  useEffect(() => startUnitySessionBridge(), []); // one account across the game and the site
 
   // Unity reports some failures (out of memory, cache, wasm compile) only as window errors; without
   // this the loader would sit on "BOOTING" forever.
