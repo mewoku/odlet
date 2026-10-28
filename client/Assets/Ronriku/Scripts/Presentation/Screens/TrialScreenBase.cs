@@ -193,7 +193,7 @@ namespace Ronriku.Presentation.Screens
             Controls.style.opacity = 0.35f;
             Continue.text = "CONTINUE";
             Continue.style.visibility = _context.Embedded ? Visibility.Hidden : Visibility.Visible;
-            if (_context.Embedded) schedule.Execute(Finish).StartingIn(solved ? 650 : 1100);
+            if (_context.Embedded) schedule.Execute(Finish).StartingIn(EmbeddedHoldMs(solved));
             if (solved)
             {
                 Feedback.Success();
@@ -202,6 +202,9 @@ namespace Ronriku.Presentation.Screens
             }
             else Feedback.Error();
         }
+
+        /// <summary>How long an embedded BIG CARD stays on screen after it is solved / failed before it reports itself.</summary>
+        protected virtual int EmbeddedHoldMs(bool solved) => solved ? 650 : 1100;
 
         private void HitGuardian()
         {

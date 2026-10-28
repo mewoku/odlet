@@ -178,6 +178,19 @@ namespace Ronriku.Domain.Arcade
         /// <summary>Where this enemy intends to step on the coming beat, or -1 if it waits.</summary>
         public int Intent(Enemy e) => Intent(e, Beat + 1);
 
+        /// <summary>
+        /// The cell this enemy will really enter (or strike, when it is the hero's) on the coming beat, or -1 when it
+        /// waits or turns around against a wall or another monster. Board arrows show this, so they never point into a wall.
+        /// </summary>
+        public int NextStep(Enemy e)
+        {
+            int dir = Intent(e);
+            if (dir < 0) return -1;
+            int target = CrawlLevel.Step(e.Pos, dir);
+            if (target == Hero) return target;
+            return Blocked(target) || EnemyAt(target) != null ? -1 : target;
+        }
+
         private int Intent(Enemy e, int beat)
         {
             switch (e.Kind)

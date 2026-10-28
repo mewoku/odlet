@@ -169,6 +169,13 @@ namespace Ronriku.Presentation.Arcade
                     charms.Add(chip);
                 }
                 Add(charms);
+                // What the charms do stays on screen: a player should not have to remember the pick screen.
+                var rules = UiFactory.Heading(string.Join("  ·  ", Array.ConvertAll(config.Charms, Charms.Describe)), 10, RonrikuTheme.WithAlpha(RonrikuTheme.Gold, 0.8f));
+                rules.name = "charm-rules";
+                rules.style.whiteSpace = WhiteSpace.Normal;
+                rules.style.flexShrink = 0;
+                rules.style.marginTop = 4;
+                Add(rules);
             }
 
             // Middle stage: played runes land here, then the combo and chips x mult read out under them.
@@ -192,7 +199,7 @@ namespace Ronriku.Presentation.Arcade
             _handRow = UiFactory.Row();
             _handRow.name = "hand";
             _handRow.style.justifyContent = Justify.Center;
-            _handRow.style.height = 100;
+            _handRow.style.height = 112;
             _handRow.style.flexShrink = 0;
             _handRow.style.alignItems = Align.FlexEnd;
             Add(_handRow);
@@ -241,7 +248,8 @@ namespace Ronriku.Presentation.Arcade
             float width = Mathf.Min(52f, 400f / Mathf.Max(1, _state.Hand.Count) - 4);
             for (int i = 0; i < _state.Hand.Count; i++)
             {
-                var card = new CardElement(_state.Hand[i], width, width * 1.45f) { name = $"card-{i}" };
+                // Width is capped by seven runes across the phone; height is free, so runes stand taller for easier taps.
+                var card = new CardElement(_state.Hand[i], width, width * 1.7f) { name = $"card-{i}" };
                 int index = i;
                 card.RegisterCallback<PointerDownEvent>(_ => Toggle(index));
                 _cards.Add(card);
@@ -288,10 +296,19 @@ namespace Ronriku.Presentation.Arcade
         private void Hint()
         {
             if (_busy || _finished) return;
-            var (mask, _) = _state.BestPlay();
+            // A hand too weak to keep pace gets "discard these" first; HINT again shows the best play anyway.
+            int discard = _state.SuggestDiscard();
+            bool suggestDiscard = discard != 0 && SelectedMask() != discard;
+            int mask = suggestDiscard ? discard : _state.BestPlay().mask;
             for (int i = 0; i < _cards.Count; i++) _cards[i].Selected = (mask & (1 << i)) != 0;
             Feedback.Snap();
             RefreshPreview();
+            if (suggestDiscard)
+            {
+                _comboName.text = "WEAK HAND  ·  DISCARD THESE";
+                _comboName.style.color = RonrikuTheme.Gold;
+                Juice.Punch(_discard, 0.2f);
+            }
         }
 
         private void Discard()

@@ -47,6 +47,8 @@ namespace Ronriku.Presentation.Components
         public static readonly Color OffWhite = Text;
         public static readonly Color Red = Hex("FF3B5C");
         public static readonly Color Gold = Hex("FFC83D");
+        /// <summary>The right answer, once judged (kept apart from the teal accent so it always reads as "correct").</summary>
+        public static readonly Color Green = Hex("3DDC5A");
 
         // World palettes.
         public static readonly Palette Lab = new Palette("LAB", Hex("11C5B3"), Hex("135B73"), Hex("0B3B4A"));

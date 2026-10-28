@@ -13,6 +13,7 @@ Pixel-art reasoning game (Android / Solana Seeker + WebGL). Product name ODLET, 
 | `deploy/` | Docker self-hosting (Next + Caddy + Supabase) |
 | `store/` | dApp Store / release checklist, listing, media |
 | `marketing/` | Remotion video + brand scripts (own `CLAUDE.md`) |
+| `tools/mate-puzzles/` | Node scripts that mine, verify and generate the CHECKMATE puzzle bank (`Domain/Chess/MatePuzzleBank.Data.cs`, `docs/MATE_PUZZLES.md`) |
 
 ## Rules that matter
 
@@ -20,6 +21,7 @@ Pixel-art reasoning game (Android / Solana Seeker + WebGL). Product name ODLET, 
 - Content/rules changes need an explicit `rulesVersion`; persisted data carries a schema version.
 - Run `pnpm publish:content` (in `backend/`) after every `supabase db reset`.
 - Arcade proofs are not replay-verified yet (STATE open item 1b).
+- CHECKMATE big cards use only real games with a proven unique solution. Never hand-edit `MatePuzzleBank.Data.cs` or invent positions: regenerate with `tools/mate-puzzles` and keep `MatePuzzleTests` green. `Domain/Chess` is a full rules engine checked by perft (`ChessEngineTests`).
 - Never commit keys, keystores, service-role keys or private RPC URLs. The repo is public.
 - Brand: `brand.md` (square corners, 8 px rhythm, terse copy, reward/wallet language off the Daily surface).
 

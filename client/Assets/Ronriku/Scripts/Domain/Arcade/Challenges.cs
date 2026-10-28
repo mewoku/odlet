@@ -18,7 +18,8 @@ namespace Ronriku.Domain.Arcade
         Mirror = 4,  // pick the half that completes the mirror picture
         Arrows = 5,  // follow the arrows: where does the ball leave the board?
         Scales = 6,  // balance scales: how many small weights equal the question
-        Classic = 7  // BIG CARD: a full classic trial (Items[0]: 0 Pattern, 1 Shadow, 2 Link); Answer 1 = solved
+        Classic = 7, // BIG CARD: a full trial (Items[0]: 0 Pattern, 1 Shadow, 2 Link, 3 Checkmate + Items[1] = MatePuzzleBank index); Answer 1 = solved
+        Lines = 8    // tangled lines: which top letter's line reaches the star at the bottom
     }
 
     /// <summary>
@@ -79,8 +80,9 @@ namespace Ronriku.Domain.Arcade
             ChallengeKind.Sum => $"TAP {Pick} THAT MAKE {Target}",
             ChallengeKind.Memory => "REMEMBER THE LIGHTS",
             ChallengeKind.Mirror => "COMPLETE THE MIRROR",
-            ChallengeKind.Arrows => "WHERE DOES THE BALL EXIT?",
-            ChallengeKind.Classic => Items[0] == 0 ? "BIG CARD · PATTERN" : Items[0] == 1 ? "BIG CARD · SHADOW" : "BIG CARD · LINK",
+            ChallengeKind.Arrows => "BALL FOLLOWS ARROWS · WHERE DOES IT EXIT?",
+            ChallengeKind.Classic => Items[0] == 0 ? "BIG CARD · PATTERN" : Items[0] == 1 ? "BIG CARD · SHADOW" : Items[0] == 3 ? "BIG CARD · CHECKMATE" : "BIG CARD · LINK",
+            ChallengeKind.Lines => "WHICH LINE REACHES THE STAR?",
             _ => "HOW MANY DOTS?"
         };
     }
@@ -101,9 +103,29 @@ namespace Ronriku.Domain.Arcade
                 ChallengeKind.Mirror => Mirror(ref rng, seed, tier),
                 ChallengeKind.Arrows => Arrows(ref rng, seed, tier),
                 ChallengeKind.Classic => new Challenge(ChallengeKind.Classic, seed, tier, new[] { rng.NextInt(3) }, Array.Empty<int>(), 1),
+                ChallengeKind.Lines => Lines(ref rng, seed, tier),
                 _ => Scales(ref rng, seed, tier)
             };
         }
+
+        /// <summary>
+        /// BIG CARD · CHECKMATE: the puzzle at <paramref name="puzzle"/> in <see cref="Ronriku.Domain.Chess.MatePuzzleBank"/>
+        /// (a real game; which one each fight gets is <see cref="LevelModes.MatePuzzle"/>). With <paramref name="choices"/>
+        /// the player picks each move from <see cref="Ronriku.Domain.Chess.MateChoices"/> instead of moving pieces
+        /// (Items[2]: 1 = choices, 0 = full board).
+        /// </summary>
+        public static Challenge GenerateMate(int puzzle, long seed, int tier, bool choices = false)
+        {
+            int index = Math.Max(0, Math.Min(Ronriku.Domain.Chess.MatePuzzleBank.All.Count - 1, puzzle));
+            return new Challenge(ChallengeKind.Classic, seed, tier, new[] { MateTrial, index, choices ? 1 : 0 }, Array.Empty<int>(), 1);
+        }
+
+        /// <summary>True for a CHECKMATE big card played by picking moves from options.</summary>
+        public static bool IsMateChoice(Challenge c) =>
+            c.Kind == ChallengeKind.Classic && c.Items.Length > 2 && c.Items[0] == MateTrial && c.Items[2] == 1;
+
+        /// <summary><see cref="Challenge.Items"/>[0] value of a BIG CARD that plays the checkmate puzzle.</summary>
+        public const int MateTrial = 3;
 
         // ------------------------------------------------------------------ Next
 
@@ -283,7 +305,18 @@ namespace Ronriku.Domain.Arcade
                 int exit = FollowArrows(dirs, start, out int steps);
                 if (exit < 0 || steps < minSteps || steps > minSteps + 5) continue;
 
+                // Distractors are other exits (edge cells whose arrow points out of the board), so none can be ruled out
+                // at a glance; only trace the path does it. Plain edge cells fill in when a board has too few exits.
                 var options = new List<int> { exit };
+                var exits = new List<int>();
+                for (int cell = 0; cell < dirs.Length; cell++)
+                    if (cell != exit && cell != start && PointsOut(dirs, cell)) exits.Add(cell);
+                while (options.Count < 3 && exits.Count > 0)
+                {
+                    int k = rng.NextInt(exits.Count);
+                    options.Add(exits[k]);
+                    exits.RemoveAt(k);
+                }
                 int guard = 0;
                 while (options.Count < 3 && guard++ < 64)
                 {
@@ -297,6 +330,14 @@ namespace Ronriku.Domain.Arcade
             var line = new int[ArrowSize * ArrowSize];
             for (int i = 0; i < line.Length; i++) line[i] = 1;
             return new Challenge(ChallengeKind.Arrows, seed, tier, line, new[] { 3, 7, 11 }, 0, 0);
+        }
+
+        /// <summary>True when the arrow on this cell sends the ball off the board.</summary>
+        public static bool PointsOut(int[] dirs, int cell)
+        {
+            var (dx, dy) = Directions[dirs[cell]];
+            int x = cell % ArrowSize + dx, y = cell / ArrowSize + dy;
+            return x < 0 || y < 0 || x >= ArrowSize || y >= ArrowSize;
         }
 
         private static bool IsEdge(int cell)
@@ -355,6 +396,58 @@ namespace Ronriku.Domain.Arcade
             options.Sort();
             return new Challenge(ChallengeKind.Scales, seed, tier, question, options.ToArray(), options.IndexOf(answer), 0,
                 clues.Count, clues);
+        }
+
+        // ------------------------------------------------------------------ Lines
+
+        /// <summary>
+        /// Tangled lines. Pick = number of lines (3 or 4), each starting under a letter at the top. Items = one swap mask per
+        /// step down the board: bit i swaps the lines in slots i and i+1 (pairs never overlap, so every crossing is a clean
+        /// X of exactly two lines). Target = bottom slot of the star. Options = top slots 0…Pick−1 (A, B, C, D);
+        /// Answer = the slot whose line ends on the star. The right line never runs straight down to the star and
+        /// crosses at least two (tier 1: three) other lines.
+        /// </summary>
+        private static Challenge Lines(ref DeterministicRandom rng, long seed, int tier)
+        {
+            int n = tier > 0 ? 4 : 3;
+            int steps = tier > 0 ? 5 : 4;
+            int minCrossings = tier > 0 ? 3 : 2;
+            for (int attempt = 0; attempt < 500; attempt++)
+            {
+                var masks = new int[steps];
+                for (int s = 0; s < steps; s++)
+                {
+                    int mask = 0;
+                    for (int i = 0; i < n - 1; i++)
+                        if (rng.NextInt(2) == 0) { mask |= 1 << i; i++; }
+                    if (mask == 0) mask = 1 << rng.NextInt(n - 1);
+                    masks[s] = mask;
+                }
+                int star = rng.NextInt(n);
+                int answer = -1;
+                for (int start = 0; start < n; start++)
+                    if (LineEnd(masks, n, start, out _) == star) answer = start;
+                LineEnd(masks, n, answer, out int crossings);
+                if (answer == star || crossings < minCrossings) continue;
+                var options = new int[n];
+                for (int i = 0; i < n; i++) options[i] = i;
+                return new Challenge(ChallengeKind.Lines, seed, tier, masks, options, answer, star, n);
+            }
+            // Fallback: a fixed braid for three lines; line A crosses three times and ends in the middle, under B.
+            return new Challenge(ChallengeKind.Lines, seed, tier, new[] { 1, 2, 1, 2 }, new[] { 0, 1, 2 }, 0, 1, 3);
+        }
+
+        /// <summary>Follows the line starting in top slot <paramref name="start"/> down the swap steps; returns its bottom slot.</summary>
+        public static int LineEnd(int[] masks, int lines, int start, out int crossings)
+        {
+            int slot = start;
+            crossings = 0;
+            foreach (int mask in masks)
+            {
+                if (slot < lines - 1 && (mask & (1 << slot)) != 0) { slot++; crossings++; }
+                else if (slot > 0 && (mask & (1 << (slot - 1))) != 0) { slot--; crossings++; }
+            }
+            return slot;
         }
 
         private static int[] Repeat(int lhs, int value, int times)

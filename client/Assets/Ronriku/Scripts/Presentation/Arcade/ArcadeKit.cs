@@ -132,15 +132,19 @@ namespace Ronriku.Presentation.Arcade
         public static void FadeOut(VisualElement target, float seconds, Action done = null) =>
             Animate(target, seconds, t => target.style.opacity = 1f - t, done);
 
-        /// <summary>Big centered banner ("FIGHT!", "VICTORY") that slams in and leaves.</summary>
-        public static void Banner(VisualElement layer, string text, Color color, float seconds = 0.9f, Action done = null)
+        /// <summary>
+        /// Big centered banner ("FIGHT!", "VICTORY") that slams in and leaves. By default it sits at 38 % of the layer;
+        /// <paramref name="top"/> places it elsewhere (layer pixels) and <paramref name="pixel"/> sets the letter size.
+        /// </summary>
+        public static void Banner(VisualElement layer, string text, Color color, float seconds = 0.9f, Action done = null,
+            float? top = null, int pixel = 7)
         {
-            var banner = new PixelLabel(text, color, 7);
+            var banner = new PixelLabel(text, color, pixel);
             banner.style.position = Position.Absolute;
             banner.style.left = 0;
             banner.style.right = 0;
-            banner.style.top = Length.Percent(38);
-            banner.style.height = 70;
+            banner.style.top = top.HasValue ? new StyleLength(top.Value) : new StyleLength(Length.Percent(38));
+            banner.style.height = pixel * 10;
             banner.pickingMode = PickingMode.Ignore;
             layer.Add(banner);
             Animate(banner, seconds, t =>
@@ -299,12 +303,13 @@ namespace Ronriku.Presentation.Arcade
                 Shape(p, shape, c, r, color, rotation);
                 return;
             }
-            float small = r * (count == 2 ? 0.55f : 0.48f);
+            // Copies never touch (a clear gap between them), so "two" never reads as one merged blob.
+            float small = r * (count == 2 ? 0.44f : 0.4f);
             for (int i = 0; i < count; i++)
             {
                 Vector2 offset = count == 2
-                    ? new Vector2((i == 0 ? -1 : 1) * r * 0.5f, 0)
-                    : new Vector2((i - 1) * r * 0.62f, i == 1 ? -r * 0.45f : r * 0.35f);
+                    ? new Vector2((i == 0 ? -1 : 1) * r * 0.66f, 0)
+                    : new Vector2((i - 1) * r * 0.68f, i == 1 ? -r * 0.6f : r * 0.52f);
                 Shape(p, shape, c + offset, small, color, rotation);
             }
         }
@@ -506,6 +511,79 @@ namespace Ronriku.Presentation.Arcade
         {
             _mult.text = mult.ToString();
             Juice.Punch(_multBox, 0.3f);
+        }
+    }
+
+    /// <summary>
+    /// Combo as a segmented bar with a caption under it: one segment per correct answer in a row, up to
+    /// <see cref="Segments"/>. Empty segments keep a dim tint of the tier they belong to (accent, then ON FIRE orange
+    /// from 3, then UNSTOPPABLE gold from 5), so the player sees how many answers are left to the next tier.
+    /// </summary>
+    public sealed class ComboMeter : VisualElement
+    {
+        public const int Segments = 8;
+        private static readonly Color Fire = RonrikuTheme.Hex("FF8A3D");
+
+        private readonly VisualElement[] _cells = new VisualElement[Segments];
+        private readonly Label _caption;
+        private readonly Color _accent;
+        private int _value;
+
+        public ComboMeter(Color accent)
+        {
+            _accent = accent;
+            name = "combo-meter";
+            style.justifyContent = Justify.Center;
+            style.paddingLeft = style.paddingRight = 5;
+            style.paddingTop = 5;
+            style.paddingBottom = 3;
+            style.backgroundColor = RonrikuTheme.NearBlack;
+            UiFactory.SetBorder(this, 2, RonrikuTheme.Line);
+
+            var bar = new VisualElement();
+            bar.style.flexDirection = FlexDirection.Row;
+            bar.style.height = 12;
+            bar.style.flexShrink = 0;
+            for (int i = 0; i < Segments; i++)
+            {
+                var cell = new VisualElement { name = $"combo-cell-{i}" };
+                cell.style.flexGrow = 1;
+                cell.style.flexBasis = 0;
+                // a wider gap before each new tier marks where it starts
+                cell.style.marginLeft = i == 0 ? 0 : i == 2 || i == 4 || i == 7 ? 4 : 2;
+                bar.Add(cell);
+                _cells[i] = cell;
+            }
+            Add(bar);
+
+            _caption = UiFactory.Heading("COMBO 0", 10, RonrikuTheme.Muted);
+            _caption.name = "combo-caption";
+            _caption.style.marginTop = 2;
+            _caption.style.height = 14;
+            Add(_caption);
+            Set(0);
+        }
+
+        public int Value => _value;
+
+        /// <summary>Colour of the tier a combo value belongs to (also used for the caption and banners).</summary>
+        public Color TierColor(int combo) => combo >= 5 ? RonrikuTheme.Gold : combo >= 3 ? Fire : _accent;
+
+        public void Set(int combo)
+        {
+            bool up = combo > _value;
+            _value = combo;
+            for (int i = 0; i < Segments; i++)
+            {
+                Color tier = TierColor(i + 1);
+                bool lit = i < combo;
+                _cells[i].style.backgroundColor = lit ? tier : RonrikuTheme.WithAlpha(tier, 0.16f);
+                UiFactory.SetBorder(_cells[i], 1, lit ? Color.Lerp(tier, Color.white, 0.35f) : RonrikuTheme.WithAlpha(tier, 0.3f));
+            }
+            _caption.text = combo > Segments ? $"COMBO {combo}  MAX" : $"COMBO {combo}";
+            _caption.style.color = combo > 0 ? TierColor(combo) : RonrikuTheme.Muted;
+            UiFactory.SetBorder(this, 2, combo >= 5 ? RonrikuTheme.WithAlpha(RonrikuTheme.Gold, 0.8f) : combo >= 3 ? RonrikuTheme.WithAlpha(Fire, 0.7f) : RonrikuTheme.Line);
+            if (up && combo > 0 && combo <= Segments) Juice.Punch(_cells[combo - 1], 0.6f, 0.25f);
         }
     }
 

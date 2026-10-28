@@ -28,12 +28,13 @@ namespace Ronriku.Presentation.Arcade
             {
                 ("bolt", "A PUZZLE CARD APPEARS. SOLVE IT TO HIT THE MONSTER"),
                 ("star", "FAST + IN A ROW = CHIPS X MULT. BIG NUMBERS"),
-                ("heart", "WRONG ANSWERS AND THE YELLOW TIMER COST HEARTS")
+                ("heart", "WRONG ANSWERS AND THE YELLOW TIMER COST HEARTS"),
+                ("trophy", "EVERY 4TH CARD IS A BIG CARD: NO TIMER, A MISS ONLY BREAKS THE COMBO")
             },
             LevelMode.Cards => new[]
             {
                 ("hand", "TAP UP TO 5 RUNES. PAIRS, LADDERS, SAME SIGN SCORE MORE"),
-                ("star", "YOU SEE THE SCORE BEFORE YOU PLAY. HINT PICKS THE BEST"),
+                ("star", "YOU SEE THE SCORE BEFORE YOU PLAY. HINT PICKS THE BEST PLAY OR WHAT TO DISCARD"),
                 ("heart", "BEAT THE MONSTER'S HP IN 4 HANDS. DISCARD BAD RUNES")
             },
             LevelMode.Dash => new[]
