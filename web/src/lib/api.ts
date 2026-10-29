@@ -178,13 +178,21 @@ export async function currentUserId(): Promise<string | null> {
   return data.session?.user.id ?? null;
 }
 
-export async function signInAsGuest(): Promise<string> {
-  const c = await requireLive();
-  const existing = await currentUserId();
-  if (existing) return existing;
-  const { data, error } = await c.auth.signInAnonymously();
-  if (error || !data.user) throw new Error(error?.message ?? "Anonymous sign-in failed.");
-  return data.user.id;
+let guestInflight: Promise<string> | null = null;
+
+/** One anonymous account per browser: concurrent callers (effects run twice in dev, the game bridge and a Daily save) share a single sign-in. */
+export function signInAsGuest(): Promise<string> {
+  guestInflight ??= (async () => {
+    const c = await requireLive();
+    const existing = await currentUserId();
+    if (existing) return existing;
+    const { data, error } = await c.auth.signInAnonymously();
+    if (error || !data.user) throw new Error(error?.message ?? "Anonymous sign-in failed.");
+    return data.user.id;
+  })().finally(() => {
+    guestInflight = null;
+  });
+  return guestInflight;
 }
 
 export async function signOut(): Promise<void> {
