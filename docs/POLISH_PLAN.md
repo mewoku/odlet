@@ -60,6 +60,12 @@ Blockers and not yet done:
 - Live checks: all routes 200 on both domains; `unity.wasm.br` is 6.8 MB, `application/wasm`, `Content-Encoding: br`, immutable (so the nginx rules work on the real gateway). A full Daily played and saved on odlet.io: score, rank, rating 1200 to 1209, streak; `/play` then showed the same account (rating 1209). The throwaway guest was deleted afterwards through `/delete-account`.
 - Rollback: `tar -xzf ~/odlet-backups/odlet-app-pre-20261029.tgz -C ~`, `docker tag odlet-web:pre-20261029 odlet-web:latest`, `docker compose --env-file .env up -d --no-build`, then recreate the gateway. The retention views are additive; leave them.
 
+## Store test builds 2026-10-29 (versionCode / build 26102900)
+
+- **TestFlight:** exported on Windows (`ExportIOSStore`, 714 MB on D:), shipped with `store/ios-release.ps1` (draft release, macOS workflow, draft deleted). GitHub run 40799465189: archive and upload steps succeeded; the build shows in App Store Connect after processing (about 10-30 min) and goes to the internal group "ODLET testers". A memory pressure kill stopped the local watcher mid-run; the remote run was unaffected and the draft release was removed by hand.
+- **Google Play:** signed `.aab` (32 MB, upload key CN=ODLET, valid to 2054) and a matching `.apk` are in `D:\odlet-build\play`. A draft release exists on Closed testing - Alpha (currently live with 26092808 (1.0)), but the bundle is not attached: Chrome's upload tool caps files at 10 MB and a localhost pull hung (likely a local-network permission prompt). Drag `ODLET-play.aab` into the open release editor, then Next, Save, and send for review (not done on purpose).
+- Store builds talk to `https://odlet.xyz`, which now runs the matching backend.
+
 ## Android on the Pixel 6a (2026-10-28)
 
 - Toolchain fixed without elevation: OpenJDK 17.0.18 and NDK r27c (URLs from the Unity Hub manifest) unpacked into `AndroidPlayer/OpenJDK` and `AndroidPlayer/NDK`; `AndroidPlayer/SDK` is a junction to `D:\AS_SDK`, which got `cmdline-tools/latest`, `build-tools;36.0.0` and `cmake;3.22.1` via sdkmanager. `RonrikuBuild` reads `ODLET_ANDROID_SDK` / `_NDK` / `_JDK`; run the build with `GRADLE_USER_HOME=D:\gradle-home` to keep Gradle off C:.
