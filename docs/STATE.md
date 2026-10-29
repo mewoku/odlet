@@ -13,7 +13,7 @@ Updated: 2026-10-29 (see the 2026-10-29 block below; details in `docs/POLISH_PLA
 | Transitions | `PixelWipe` between tabs and screens, `Swirl` backgrounds, trial deal-in / solve / miss juice, `FrameGovernor` (half frame rate when idle) |
 | Delivery | WebGL Brotli (about 9 MB), nginx rules for `.br` (untested on a live nginx), installable manifest, link-preview images |
 | Backend | `analytics_daily_active` and `analytics_retention` views (service role only); pgTAP assertions brought up to date for `delete_my_account` |
-| Tests | EditMode 94, web 148, backend 43 on a minimal local stack (wallet edge function not run there), pgTAP 8 |
+| Tests | EditMode 94, web 148, backend 42 of 43 on a minimal local stack (the 43rd is the wallet edge function, which that stack does not run), pgTAP 8 |
 
 Deploy checklist (the owner does these): `supabase db push` for migration `20261029000008`; copy `web/public/unity` and `deploy/prod/gateway/nginx.conf`; recreate the gateway; rebuild the web image. Publisher: Dailies run out after the last published day (`publish:content` covers about 30 days), so schedule it.
 
