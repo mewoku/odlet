@@ -52,6 +52,14 @@ Blockers and not yet done:
 - Link previews: `opengraph-image` for the site and for `/daily/play` (per-day pixel glyph, brand palette), Twitter card `summary_large_image`.
 - Local test stack tips: Docker Desktop's disk is on D: (`%LOCALAPPDATA%\Docker\wsl\disk` is a junction to `D:\docker-data\disk`). The HDD makes DB init exceed the health check, so use `npx supabase start --ignore-health-check -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`.
 
+## Deployed 2026-10-29 (odlet.xyz and odlet.io)
+
+- Shipped from the working tree (not git HEAD): the server's `deploy/web.Dockerfile` and `deploy/prod/docker-compose.yml` already carried uncommitted edits (contact email, social links, `NEXT_PUBLIC_MARKET_OPEN`), so a HEAD archive would have dropped them. Backups first: `~/odlet-backups/odlet-app-pre-20261029.tgz`, `odlet-db-pre-20261029.sql.gz`, image `odlet-web:pre-20261029`.
+- Old `*.unityweb` files had to be deleted from `web/public/unity/Build` first: `findUnityBuild` prefers `.unityweb` over `.br`.
+- `db-init` applied `20261029000008_retention` on `up`; the daily publisher cron (00:15) was already installed, keys cover about 30 days.
+- Live checks: all routes 200 on both domains; `unity.wasm.br` is 6.8 MB, `application/wasm`, `Content-Encoding: br`, immutable (so the nginx rules work on the real gateway). A full Daily played and saved on odlet.io: score, rank, rating 1200 to 1209, streak; `/play` then showed the same account (rating 1209). The throwaway guest was deleted afterwards through `/delete-account`.
+- Rollback: `tar -xzf ~/odlet-backups/odlet-app-pre-20261029.tgz -C ~`, `docker tag odlet-web:pre-20261029 odlet-web:latest`, `docker compose --env-file .env up -d --no-build`, then recreate the gateway. The retention views are additive; leave them.
+
 ## Android on the Pixel 6a (2026-10-28)
 
 - Toolchain fixed without elevation: OpenJDK 17.0.18 and NDK r27c (URLs from the Unity Hub manifest) unpacked into `AndroidPlayer/OpenJDK` and `AndroidPlayer/NDK`; `AndroidPlayer/SDK` is a junction to `D:\AS_SDK`, which got `cmdline-tools/latest`, `build-tools;36.0.0` and `cmake;3.22.1` via sdkmanager. `RonrikuBuild` reads `ODLET_ANDROID_SDK` / `_NDK` / `_JDK`; run the build with `GRADLE_USER_HOME=D:\gradle-home` to keep Gradle off C:.
