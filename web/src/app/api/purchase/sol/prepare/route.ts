@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST { item, refs } (auth) → { ok, transaction (base64, partially signed), lastValidBlockHeight,
- * lamports, wallet, recipient, figureId, assetAddress }. Runs every pre-check; the buyer's wallet
+ * lamports, wallet, recipient }. Runs every pre-check; the buyer's wallet
  * signs as fee payer and broadcasts, then POSTs the signature to /api/purchase/sol.
  */
 export async function POST(req: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   const { prepareSolPurchase } = await import("@/lib/server/purchase");
   const { supabasePurchaseStore } = await import("@/lib/server/purchaseStore");
-  const { solanaChain } = await import("@/lib/server/mint");
+  const { solanaChain } = await import("@/lib/server/chain");
   try {
     const p = await prepareSolPurchase(supabasePurchaseStore(getServiceSupabase()!), solanaChain(cfg.authoritySecret), cfg, userId, parsed.data);
     return json({ ok: true, ...p });

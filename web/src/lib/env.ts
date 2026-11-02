@@ -29,7 +29,7 @@ export const publicEnv = {
   solanaRpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com",
   /** Wallet that receives SOL payments (public address; its secret key never touches this server). */
   paymentRecipient: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT ?? "",
-  /** Canonical public origin (metadataBase, on-chain NFT metadata URIs). Set it to http://localhost:3000 in dev. */
+  /** Canonical public origin (metadataBase, link previews). Set it to http://localhost:3000 in dev. */
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "https://odlet.xyz").replace(/\/$/, ""),
   /** Public support / privacy contact shown on /privacy and /terms (store listings require one). */
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "",
@@ -40,7 +40,7 @@ export const publicEnv = {
     telegram: safeUrl(process.env.NEXT_PUBLIC_TELEGRAM_URL),
   },
   /**
-   * Marketplace and every SOL purchase (figures, boss entry, mint fee). Off until mainnet launch:
+   * Marketplace and SOL payments (boss entry). Off until mainnet launch:
    * NEXT_PUBLIC_MARKET_OPEN=true turns it on. The API routes enforce the same flag server-side.
    */
   marketOpen: process.env.NEXT_PUBLIC_MARKET_OPEN === "true",

@@ -6,6 +6,7 @@
  * configured or not reachable. Writes never fake success: they throw `BackendUnavailableError`.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { figurePrice } from "@ronriku/core";
 import { getBrowserSupabase } from "./supabase/client";
 import { demoBossEvents, demoCollection, demoFigures, demoFriends, demoLeaderboard, demoListings, demoProfile, demoProfileStats } from "./demo/data";
 import { dailyFromRows, worldsFromLevels, worldsFromSummary, type ProfileStats } from "./profile";
@@ -17,15 +18,12 @@ import { parseBank, toWireOutcomes, type DailyBank, type DailyOutcomeWire, type 
 const RPC_ERRORS: Record<string, string> = {
   insufficient_shards: "Not enough shards.",
   already_owned: "You already own this figure.",
-  sol_only_item: "Legendaries are devnet-SOL only.",
   unknown_item: "That item is no longer on the shelf.",
   invalid_handle: "Handles are 3–20 letters, numbers or _.",
   invalid_display_name: "Display names are 1–24 characters.",
   handle_taken: "That handle is taken.",
   figure_not_owned: "You don't own that figure.",
   not_authenticated: "Sign in first.",
-  mint_required_for_sol_listing: "Mint the figure before listing it for SOL.",
-  minted_figures_list_for_sol: "Minted figures can only be listed for SOL.",
   no_pending_request: "That request is gone.",
   wrong_day: "The Daily rolled over. Reload to play today's.",
   invalid_outcomes: "That run could not be checked.",
@@ -264,8 +262,8 @@ export async function fetchListings(filters: ListingFilters): Promise<Sourced<Li
   return withFallback(
     async (c) => {
       let q = c.from("listings").select("*, figure:figures(*)").eq("status", "active").order("created_at", { ascending: false }).limit(60);
-      if (filters.currency === "sol") q = q.not("price_lamports", "is", null);
-      if (filters.currency === "shards") q = q.not("price_shards", "is", null);
+      // Shards only: SOL listings needed a minted figure, and minting is gone.
+      q = q.not("price_shards", "is", null);
       const rows = check(await q) as Row[];
       const sellers = [...new Set(rows.map((r) => String(r.seller_id)))];
       const handles = sellers.length
@@ -301,7 +299,7 @@ export async function buyListing(listingId: string): Promise<void> {
 export async function fetchShelf(day: number = dayNumber()): Promise<Sourced<ShelfItem[]>> {
   return withFallback(
     async (c) => {
-      const rows = check(await c.from("shop_shelf").select("day,slot,item_id,seed,tier,rarity,name,encoding,price_shards,price_lamports").eq("day", day).order("slot")) as Row[];
+      const rows = check(await c.from("shop_shelf").select("day,slot,item_id,seed,tier,rarity,name,encoding,price_shards").eq("day", day).order("slot")) as Row[];
       if (!rows.length) return []; // not published yet — the UI says so (no locally computed stand-in)
       return rows.map((r) => ({
         id: String(r.item_id),
@@ -312,8 +310,7 @@ export async function fetchShelf(day: number = dayNumber()): Promise<Sourced<She
         name: String(r.name),
         rarity: String(r.rarity) as Rarity,
         encoding: String(r.encoding),
-        priceShards: r.price_shards == null ? null : num(r.price_shards),
-        priceLamports: r.price_lamports == null ? null : num(r.price_lamports),
+        priceShards: r.price_shards == null ? figurePrice(String(r.rarity) as Rarity) : num(r.price_shards),
       }));
     },
     () => shelfForDay(day),

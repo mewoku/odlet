@@ -102,7 +102,7 @@ describe("shop and bosses", () => {
     expect(shelf.map((i) => i.size)).toEqual([3, 3, 4, 4, 5, 5]);
     expect(shelf[0].id).toBe(`fig-${shelf[0].seed}-3`);
     expect(shopShelf(23).map((i) => i.id)).toEqual(shelf.map((i) => i.id));
-    for (const item of shelf) expect(item.priceShards).toBe({ Common: 300, Rare: 800, Epic: 2000, Legendary: -1 }[item.figure.rarity]);
+    for (const item of shelf) expect(item.priceShards).toBe({ Common: 300, Rare: 800, Epic: 2000, Legendary: 5000 }[item.figure.rarity]);
   });
 
   it("derives the weekly boss roster per BossEvent.ForWeek", async () => {

@@ -8,7 +8,7 @@ import type { FigureRecord, FriendRow, LeaderboardRow, LeaderboardScope, Listing
 import { WORLD_PALETTES } from "../palettes";
 import type { ProfileStats } from "../profile";
 
-const RARITY_PRICE: Record<Rarity, number> = { Common: 350, Rare: 900, Epic: 2400, Legendary: 0 };
+const RARITY_PRICE: Record<Rarity, number> = { Common: 350, Rare: 900, Epic: 2400, Legendary: 6000 };
 
 export function demoFigureId(seed: string, tier: number): string {
   return `demo-${seed}-${tier}`;
@@ -45,13 +45,12 @@ export function findDemoFigure(id: string): FigureRecord | undefined {
 const HANDLES = ["demo_kaito", "demo_mira", "demo_voxel", "demo_rin", "demo_tetra", "demo_nori", "demo_hex", "demo_yuki", "demo_orbit", "demo_pix"];
 
 export const demoListings: Listing[] = demoFigures.slice(0, 12).map((figure, i) => {
-  const sol = figure.rarity === "Legendary" || i % 5 === 3;
   return {
     id: `demo-listing-${i}`,
     figure,
     sellerHandle: HANDLES[i % HANDLES.length]!,
-    priceShards: sol ? null : RARITY_PRICE[figure.rarity] + (i % 3) * 50,
-    priceLamports: sol ? (figure.rarity === "Legendary" ? 150_000_000 : 25_000_000 + i * 1_000_000) : null,
+    priceShards: RARITY_PRICE[figure.rarity] + (i % 3) * 50,
+    priceLamports: null,
     status: "active",
     createdAt: null,
   };

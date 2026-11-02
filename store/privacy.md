@@ -38,7 +38,7 @@ Uninstalling the app or clearing its storage deletes this data.
 ## Public to other players
 
 Handle, display name, avatar figure, rating and streak (leaderboards, profile pages); friends see each
-other. Blockchain activity (wallet address, transactions, NFTs on devnet) is public by nature and cannot
+other. Blockchain activity (wallet address, devnet transactions) is public by nature and cannot
 be deleted by us.
 
 ## Technical data
@@ -52,7 +52,7 @@ be deleted by us.
 
 - Hosting provider running the server and database (Supabase, self-hosted or hosted).
 - Website wallet features only: your wallet app and a Solana RPC provider (they receive transactions and
-  your IP under their own policies). NFTs are minted on Solana **devnet** (no real money).
+  your IP under their own policies). Payments run on Solana **devnet** (no real money).
 
 ## Retention and deletion
 

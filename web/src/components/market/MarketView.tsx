@@ -9,14 +9,12 @@ import { useToast } from "../ui/Toast";
 import { PixelIcon } from "../ui/PixelIcon";
 import { FigureCard } from "../figure/FigureCard";
 import { FigureDetail } from "../figure/FigureDetail";
-import { WalletConnect } from "../wallet/WalletConnect";
-import { useSolPurchase } from "../wallet/useSolPurchase";
 import { useSession } from "../SessionProvider";
 import { BackendUnavailableError, buyFigureWithShards, buyListing, fetchListings, fetchShelf, type ListingFilters } from "@/lib/api";
-import { formatPrice, formatShards, formatSol } from "@/lib/economy";
+import { formatPrice, formatShards } from "@/lib/economy";
 import { useAsync } from "@/lib/hooks";
 import type { ShelfItem } from "@/lib/shelf";
-import { RARITIES, TIERS, type Currency, type FigureRecord, type Listing, type Rarity, type Tier } from "@/lib/types";
+import { RARITIES, TIERS, type FigureRecord, type Listing, type Rarity, type Tier } from "@/lib/types";
 
 type Tab = "shelf" | "listings";
 
@@ -53,7 +51,6 @@ function DailyShelf() {
   const [open, setOpen] = useState<ShelfItem | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const toast = useToast();
-  const { purchase, busy, connected } = useSolPurchase();
   const { refresh, profile, userId } = useSession();
   const offline = state.status === "ready" && state.value.source === "demo";
   const shelf = state.status === "ready" ? state.value.data : [];
@@ -72,42 +69,19 @@ function DailyShelf() {
     }
   };
 
-  const buySol = async (s: ShelfItem) => {
-    setPending(s.id);
-    try {
-      const r = await purchase("figure-legendary", { day: s.day, slot: s.slot });
-      toast(r.mintAddress ? `${s.name} minted! Core asset ${r.mintAddress.slice(0, 6)}…` : "Payment verified.", "ok");
-      setOpen(null);
-      await refresh();
-    } catch (e) {
-      toast(errText(e, "Purchase failed"), "error");
-    } finally {
-      setPending(null);
-    }
-  };
-
   const action = (s: ShelfItem) => {
-    if (s.priceShards != null) {
-      if (offline) return <Badge color="var(--muted)">{formatShards(s.priceShards)} ◆ · offline</Badge>;
-      if (!userId)
-        return (
-          <PixelButton size="sm" href="/login" variant="secondary">
-            Sign in to buy
-          </PixelButton>
-        );
-      const short = profile != null && profile.shards < s.priceShards;
+    if (offline) return <Badge color="var(--muted)">{formatShards(s.priceShards)} ◆ · offline</Badge>;
+    if (!userId)
       return (
-        <PixelButton size="sm" onClick={() => buyShards(s)} disabled={pending !== null || short} aria-label={`Buy ${s.name} for ${s.priceShards} shards`}>
-          {pending === s.id ? "…" : `${formatShards(s.priceShards)} ◆`}
+        <PixelButton size="sm" href="/login" variant="secondary">
+          Sign in to buy
         </PixelButton>
       );
-    }
-    return connected ? (
-      <PixelButton size="sm" palette="boss" onClick={() => buySol(s)} disabled={busy || pending !== null || offline}>
-        {pending === s.id ? "Confirm…" : `${formatSol(s.priceLamports ?? 0)} SOL`}
+    const short = profile != null && profile.shards < s.priceShards;
+    return (
+      <PixelButton size="sm" onClick={() => buyShards(s)} disabled={pending !== null || short} aria-label={`Buy ${s.name} for ${s.priceShards} shards`}>
+        {pending === s.id ? "…" : `${formatShards(s.priceShards)} ◆`}
       </PixelButton>
-    ) : (
-      <WalletConnect size="sm" variant="primary" />
     );
   };
 
@@ -115,7 +89,7 @@ function DailyShelf() {
     <section aria-label="Daily shelf" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-[720px] text-[15px] leading-5 text-muted">
-          Six figures rotate every UTC day — the same shelf as the game&apos;s SHOP tab. One copy per design. <b className="text-text">Legendaries</b> are devnet-SOL only and mint straight to your wallet as a Metaplex Core NFT.
+          Six figures rotate every UTC day — the same shelf as the game&apos;s SHOP tab. One copy per design.
         </p>
         {profile && (
           <span className="flex items-center gap-2 font-label text-[15px] text-yellow">
@@ -164,20 +138,15 @@ function DailyShelf() {
 function Listings() {
   const [tier, setTier] = useState<Tier | null>(null);
   const [rarity, setRarity] = useState<Rarity | null>(null);
-  const [currency, setCurrency] = useState<Currency | null>(null);
   const [sort, setSort] = useState<ListingFilters["sort"]>("new");
   const [maxShards, setMaxShards] = useState<number | null>(null);
   const [open, setOpen] = useState<Listing | null>(null);
-  const filters = useMemo(() => ({ tier, rarity, currency, sort, maxShards }), [tier, rarity, currency, sort, maxShards]);
+  const filters = useMemo(() => ({ tier, rarity, sort, maxShards }), [tier, rarity, sort, maxShards]);
   const state = useAsync(() => fetchListings(filters), [filters]);
   const toast = useToast();
 
   const onBuy = async (l: Listing) => {
     try {
-      if (l.priceLamports != null) {
-        toast("SOL listings settle via the treasury delegate — coming with M3.", "info");
-        return;
-      }
       await buyListing(l.id);
       toast(`You bought ${l.figure.name}!`, "ok");
       setOpen(null);
@@ -213,14 +182,6 @@ function Listings() {
             {RARITIES.map((r) => (
               <option key={r}>{r}</option>
             ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-2">
-          <span className="font-label text-[12px] text-muted">CURRENCY</span>
-          <select className="px-input" value={currency ?? ""} onChange={(e) => setCurrency((e.target.value || null) as Currency | null)}>
-            <option value="">Any</option>
-            <option value="shards">Shards ◆</option>
-            <option value="sol">Devnet SOL</option>
           </select>
         </label>
         <label className="flex flex-col gap-2">
@@ -264,7 +225,7 @@ function Listings() {
                 footer={
                   <div className="flex items-center justify-between gap-2">
                     <span className="tabular font-label text-[13px] text-yellow">
-                      {l.priceShards != null ? formatPrice(l.priceShards, "shards") : formatPrice(l.priceLamports ?? 0, "sol")}
+                      {formatPrice(l.priceShards ?? 0, "shards")}
                     </span>
                     <span className="truncate text-[13px] text-muted">@{l.sellerHandle}</span>
                   </div>
@@ -283,7 +244,7 @@ function Listings() {
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <PixelButton onClick={() => onBuy(open)} disabled={state.status === "ready" && state.value.source === "demo"}>
-                Buy · {open.priceShards != null ? formatPrice(open.priceShards, "shards") : formatPrice(open.priceLamports ?? 0, "sol")}
+                Buy · {formatPrice(open.priceShards ?? 0, "shards")}
               </PixelButton>
               {state.status === "ready" && state.value.source === "demo" && <DemoBadge reason="Demo listing — not purchasable" />}
             </div>

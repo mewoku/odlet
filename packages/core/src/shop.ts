@@ -3,7 +3,7 @@
  * the same shelf.
  *   daySeed = Mix(DailyCalendar.Seed(day), 0x53484F50)          ("SHOP")
  *   item i  = FigureGenerator.Generate((ulong)Mix(daySeed, i), [3,3,4,4,5,5][i])
- *   id      = "fig-{seed as ulong decimal}-{size}", price by rarity (Legendary = SOL only)
+ *   id      = "fig-{seed as ulong decimal}-{size}", price by rarity
  */
 import { dailySeed, mix } from "./daily/index.js";
 import { figurePrice } from "./economy.js";
@@ -20,7 +20,7 @@ export interface ShopShelfItem {
   seed: bigint;
   size: number;
   figure: Figure;
-  /** Shard price, or -1 when SOL-only. */
+  /** Shard price. */
   priceShards: number;
 }
 

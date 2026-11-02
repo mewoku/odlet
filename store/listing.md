@@ -44,7 +44,7 @@ PLAYS OFFLINE
 The whole game works without a connection. When online, an anonymous account (no email, no password) keeps your progress, rating and friends, and the server checks results so leaderboards stay fair.
 
 ABOUT SOLANA
-The Android app has no wallet features and never asks for your keys. On the Odlet website (odlet.xyz) you can optionally link a wallet and buy figures with devnet SOL; those figures are minted as Metaplex Core NFTs on Solana devnet, a test network with no real money. Nothing in Odlet is an investment.
+The Android app has no wallet features and never asks for your keys. On the Odlet website (odlet.xyz) you can optionally link a wallet and pay raid entries with devnet SOL, a test network with no real money. Figures are game items, not NFTs. Nothing in Odlet is an investment.
 
 No ads. No tracking. No pay-to-win.
 ```

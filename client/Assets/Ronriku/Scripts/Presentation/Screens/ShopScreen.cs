@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 
 namespace Ronriku.Presentation.Screens
 {
-    /// <summary>Daily figure shelf (shards; Legendary is devnet SOL via the online store) and marketplace entry.</summary>
+    /// <summary>Daily figure shelf (shards) and marketplace entry.</summary>
     public sealed class ShopScreen : VisualElement
     {
         private static readonly string[] Lore =
@@ -84,7 +84,7 @@ namespace Ronriku.Presentation.Screens
             marketTitle.style.unityTextAlign = TextAnchor.MiddleLeft;
             market.Add(marketTitle);
             var marketText = UiFactory.Paragraph(
-                "Trade figures with other players for shards or test SOL. Early access: collectibles live on Solana devnet. Opens when you connect online.", 12, RonrikuTheme.Muted);
+                "Trade figures with other players for shards. Opens when you connect online.", 12, RonrikuTheme.Muted);
             marketText.style.marginTop = 6;
             market.Add(marketText);
             scroll.Add(market);
@@ -244,12 +244,6 @@ namespace Ronriku.Presentation.Screens
             bool owned = _profile.figures.Exists(f => f.id == item.Id);
             Button buy;
             if (owned) buy = UiFactory.FlatButton("OWNED", null);
-            else if (item.SolOnly && Composition.RuntimeConfig.StoreBuild)
-                buy = UiFactory.FlatButton("COMING SOON", () => Toast.Show(this, "LEGENDARY FIGURES ARE COMING SOON", rarity));
-            else if (item.SolOnly)
-                buy = Composition.RuntimeConfig.OnlineAvailable
-                    ? UiFactory.GlowButton("TEST SOL", () => Toast.Show(this, "EARLY ACCESS: LEGENDARIES ARE SOLANA DEVNET NFTS (TEST SOL). BUY ON THE WEBSITE.", rarity), RonrikuTheme.Boss)
-                    : UiFactory.FlatButton("COMING SOON", () => Toast.Show(this, "LEGENDARY FIGURES ARRIVE WITH ONLINE PLAY", rarity));
             else
             {
                 buy = UiFactory.GlowButton(string.Empty, () => Purchase(item), RonrikuTheme.Pattern);

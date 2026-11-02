@@ -62,10 +62,10 @@ export async function POST(req: NextRequest) {
   if (inflight.has(body.signature)) return json({ error: "This payment is already being processed.", code: "in_progress" }, 409);
   inflight.add(body.signature);
   try {
-    // Lazy imports keep web3 / Umi out of the cold path for rejected requests.
+    // Lazy imports keep web3 out of the cold path for rejected requests.
     const { processSolPurchase } = await import("@/lib/server/purchase");
     const { supabasePurchaseStore } = await import("@/lib/server/purchaseStore");
-    const { solanaChain } = await import("@/lib/server/mint");
+    const { solanaChain } = await import("@/lib/server/chain");
     try {
       const out = await processSolPurchase(supabasePurchaseStore(getServiceSupabase()!), solanaChain(cfg.authoritySecret), cfg, userId, body);
       return json(out);

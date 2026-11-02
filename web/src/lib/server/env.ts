@@ -30,8 +30,8 @@ let cached: SolConfig | null = null;
 
 /**
  * SOL purchase config:
- *  - MINT_AUTHORITY_SECRET_KEY (server secret): co-signs prepared transactions and is the Core
- *    update authority. It never pays fees or rent, so it needs no SOL.
+ *  - MINT_AUTHORITY_SECRET_KEY (server secret; name kept for deployed configs, nothing is minted):
+ *    co-signs prepared payment transactions. It never pays fees, so it needs no SOL.
  *  - NEXT_PUBLIC_PAYMENT_RECIPIENT (public): where payments go. No secret key needed on this server.
  */
 export function solConfig(): SolConfig {

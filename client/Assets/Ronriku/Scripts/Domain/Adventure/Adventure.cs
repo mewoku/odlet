@@ -173,13 +173,13 @@ namespace Ronriku.Domain.Player
 
         public static int DailyReward(int streak) => 100 + Math.Min(100, 10 * Math.Max(0, streak));
 
-        /// <summary>Shard price by rarity; Legendary figures are SOL-only (returns -1).</summary>
+        /// <summary>Shard price by rarity.</summary>
         public static int FigurePrice(Figures.FigureRarity rarity) => rarity switch
         {
             Figures.FigureRarity.Common => 300,
             Figures.FigureRarity.Rare => 800,
             Figures.FigureRarity.Epic => 2000,
-            _ => -1
+            _ => 5000
         };
     }
 }

@@ -67,7 +67,7 @@ Errors are raised as stable snake_case messages in `error.message`.
 | `enter_boss` | `p_boss_id`, `p_pay_with` = `'shards'` | `boss_attempts` row; its `created_at` is the server start time. Reuses the open attempt, so there is no double charge. Checks puzzle keys **before** charging (`puzzle_not_published`). SOL entry goes through the server route → `enter_boss_sol`. |
 | `enter_boss_sol` (service role) | `p_user`, `p_boss_id`, `p_signature`, `p_lamports` | Requires an active event, `p_lamports ≥ entry_lamports` (`underpaid`), an existing profile and published keys. Idempotent: returns the open attempt if one exists. A reused signature raises `signature_used`. |
 | `finish_boss` | `p_attempt_id`, `p_result` (see payloads) | `{result: won/lost, earned, first_win, elapsed_ms, stages}`. A win needs every stage solved, client elapsed ≤ limit, and server elapsed (now − attempt start) ≤ limit + 30 s. The stored and ranked time is `greatest(client, server − 5 s)`. **`reward_shards` is paid only on the player's first win per boss**; later wins are recorded but pay 0. |
-| `list_figure` | `p_figure_id`, `p_price_shards` or `p_price_lamports` | `listings` row. Requires progress (`progress_required`). The avatar cannot be listed. Lamport listings require a minted figure. |
+| `list_figure` | `p_figure_id`, `p_price_shards` or `p_price_lamports` | `listings` row. Requires progress (`progress_required`). The avatar cannot be listed. Lamport listings require a minted figure, and minting was removed (2026-11-02), so the site lists for shards only. |
 | `cancel_listing` | `p_listing_id` | Seller only. |
 | `buy_listing` | `p_listing_id` | Shard listings only. Atomic debit, credit and ownership transfer. The buyer needs progress (`progress_required`); the seller can receive at most 2000 shards from sales per UTC day (`seller_daily_cap`). |
 | `send_friend_request` | `p_handle` (case-insensitive) | `{status, user_id}`. A mutual request, including two requests sent at the same moment, auto-accepts. |
@@ -123,5 +123,5 @@ So misreporting can only make a score worse than honest play. Elapsed times are 
 
 ## Not done yet
 
-- `sol-purchase` (verify a devnet transfer, then mint a Core NFT) and `figure-metadata/[id]`. The DB side is ready: `enter_boss_sol`, `figures.mint_address`, `transactions.signature` unique, and `renderFigurePng` in `@ronriku/core/render`.
+- NFT minting was removed on 2026-11-02 (Legendaries cost 5000 shards, migration `20261102000009`). `figures.mint_address` and the lamport columns stay for history; SOL is used only for raid entry (`enter_boss_sol`).
 - Daily and level elapsed times are only plausibility-checked (≥ 0.8 s per solved Daily trial, 1 s–1 h per level). Boss times are bounded by server time.

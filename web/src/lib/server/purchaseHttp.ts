@@ -1,8 +1,6 @@
 import "server-only";
 
 import { NextResponse, type NextRequest } from "next/server";
-import { dayNumber } from "@ronriku/core";
-import { publicEnv } from "../env";
 import { solConfig } from "./env";
 import type { PurchaseConfig } from "./purchase";
 import { TokenBucket } from "./rateLimit";
@@ -31,7 +29,7 @@ export function purchaseConfig(): EnabledConfig | { enabled: false; reason: stri
   const c = solConfig();
   if (!c.ok) return { enabled: false, reason: c.reason };
   if (!getServiceSupabase()) return { enabled: false, reason: "SUPABASE_SERVICE_ROLE_KEY missing" };
-  return { enabled: true, authoritySecret: c.authoritySecret, authority: c.authority, recipient: c.recipient, siteUrl: publicEnv.siteUrl, today: dayNumber(), now: new Date() };
+  return { enabled: true, authoritySecret: c.authoritySecret, authority: c.authority, recipient: c.recipient, now: new Date() };
 }
 
 export async function authUser(req: NextRequest): Promise<string | null> {

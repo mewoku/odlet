@@ -12,7 +12,7 @@ namespace Ronriku.Domain.Shop
         public ulong Seed { get; }
         public int Size { get; }
         public Figure Figure { get; }
-        /// <summary>Shard price, or -1 when the item is SOL-only.</summary>
+        /// <summary>Shard price.</summary>
         public int PriceShards { get; }
 
         public ShopItem(ulong seed, int size)
@@ -23,11 +23,9 @@ namespace Ronriku.Domain.Shop
             Figure = FigureGenerator.Generate(seed, size);
             PriceShards = Economy.FigurePrice(Figure.Rarity);
         }
-
-        public bool SolOnly => PriceShards < 0;
     }
 
-    public enum PurchaseResult { Ok, AlreadyOwned, InsufficientShards, SolOnly }
+    public enum PurchaseResult { Ok, AlreadyOwned, InsufficientShards }
 
     /// <summary>Six figures rotate every UTC day; everyone sees the same shelf.</summary>
     public static class ShopCatalogue
@@ -48,7 +46,6 @@ namespace Ronriku.Domain.Shop
         {
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             foreach (OwnedFigure f in profile.figures) if (f.id == item.Id) return PurchaseResult.AlreadyOwned;
-            if (item.SolOnly) return PurchaseResult.SolOnly;
             if (profile.shards < item.PriceShards) return PurchaseResult.InsufficientShards;
             profile.shards -= item.PriceShards;
             profile.figures.Add(new OwnedFigure { id = item.Id, seed = item.Seed.ToString(), size = item.Size, acquired = "shop" });

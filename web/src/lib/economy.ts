@@ -15,16 +15,12 @@ export const EARN = {
 
 export const BOSS_ENTRY = { shards: 150, lamports: 10_000_000 } as const; // 0.01 SOL
 
-/** Devnet fee to mint a shard-bought (off-chain) figure to a wallet. PLAN §6 says "small"; 0.005 SOL. */
-export const MINT_FEE_LAMPORTS = 5_000_000;
-
 export type ShopItemId =
   | "figure-common"
   | "figure-rare"
   | "figure-epic"
   | "figure-legendary"
-  | "boss-entry"
-  | "mint-fee";
+  | "boss-entry";
 
 export interface ShopItem {
   /** shop_items.id when live; PLAN catalogue ids when offline. */
@@ -36,20 +32,20 @@ export interface ShopItem {
   priceShards: number | null;
   /** Devnet lamports price, or null when not purchasable with SOL. */
   priceLamports: number | null;
-  /** Figure tier minted / granted (random 3–5 when null). */
+  /** Figure tier granted (random 3–5 when null). */
   tier: Tier | null;
-  kind: "figure" | "boss" | "mint";
+  kind: "figure" | "boss";
 }
 
 export const SHOP_ITEMS: readonly ShopItem[] = [
   { id: "figure-common", label: "Common figure", blurb: "A random voxel pal. Tier 3–5.", rarity: "Common", priceShards: 300, priceLamports: null, tier: null, kind: "figure" },
   { id: "figure-rare", label: "Rare figure", blurb: "Rarer traits, brighter outfits.", rarity: "Rare", priceShards: 800, priceLamports: null, tier: null, kind: "figure" },
   { id: "figure-epic", label: "Epic figure", blurb: "Epic hats, glow eyes, accessories.", rarity: "Epic", priceShards: 2000, priceLamports: null, tier: null, kind: "figure" },
-  { id: "figure-legendary", label: "Legendary figure", blurb: "Devnet SOL only. Minted as a Metaplex Core NFT.", rarity: "Legendary", priceShards: null, priceLamports: 100_000_000, tier: 5, kind: "figure" },
+  { id: "figure-legendary", label: "Legendary figure", blurb: "The rarest traits and crowns.", rarity: "Legendary", priceShards: 5000, priceLamports: null, tier: null, kind: "figure" },
   { id: "boss-entry", label: "Boss entry", blurb: "One attempt at the current boss event.", rarity: null, priceShards: BOSS_ENTRY.shards, priceLamports: BOSS_ENTRY.lamports, tier: null, kind: "boss" },
 ] as const;
 
-export const SOL_PURCHASABLE: readonly ShopItemId[] = ["figure-legendary", "boss-entry", "mint-fee"];
+export const SOL_PURCHASABLE: readonly ShopItemId[] = ["boss-entry"];
 
 export function shopItem(id: ShopItemId): ShopItem | undefined {
   return SHOP_ITEMS.find((i) => i.id === id);
@@ -57,7 +53,6 @@ export function shopItem(id: ShopItemId): ShopItem | undefined {
 
 /** Lamport price the server expects for a SOL purchase. */
 export function solPriceLamports(id: ShopItemId): number | null {
-  if (id === "mint-fee") return MINT_FEE_LAMPORTS;
   return shopItem(id)?.priceLamports ?? null;
 }
 

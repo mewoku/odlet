@@ -24,15 +24,15 @@ export default function TermsPage() {
           </p>
         </LegalSection>
 
-        <LegalSection id="value" title="Shards, figures and NFTs">
+        <LegalSection id="value" title="Shards and figures">
           <LegalList
             items={[
               <>
                 <Strong>Shards</Strong> and in-game figures are game items. They have no cash value, cannot be redeemed for money, and are not property.
               </>,
               <>
-                Figures bought with SOL on the website are minted as NFTs on Solana <Strong>devnet</Strong>, a public test network. Devnet SOL and devnet
-                NFTs have no monetary value. Nothing in Odlet is an investment or a promise of future value.
+                Figures are not NFTs and live only in Odlet. SOL payments (raid entry) run on Solana <Strong>devnet</Strong>, a public test network;
+                devnet SOL has no monetary value. Nothing in Odlet is an investment or a promise of future value.
               </>,
               <>
                 Blockchain transactions are final. You are responsible for your wallet, its keys and the transactions you sign. We never ask for your seed

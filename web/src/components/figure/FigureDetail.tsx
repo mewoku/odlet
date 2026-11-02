@@ -15,7 +15,6 @@ export function FigureDetail({ figure, children }: { figure: FigureRecord; child
   } catch {
     voxels = 0;
   }
-  const isDemo = figure.id.startsWith("demo-");
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
       <div className="dither-bg px-border grid shrink-0 place-items-center self-center p-2" style={{ background: `radial-gradient(60% 55% at 50% 60%, color-mix(in srgb, ${c} 26%, transparent), #07080b)` }}>
@@ -36,22 +35,7 @@ export function FigureDetail({ figure, children }: { figure: FigureRecord; child
           <dd className="tabular font-label text-[13px]">{voxels}</dd>
           <dt className="text-muted">Seed</dt>
           <dd className="tabular truncate font-label text-[13px]">{figure.seed}</dd>
-          <dt className="text-muted">On-chain</dt>
-          <dd className="truncate font-label text-[13px]">
-            {figure.mintAddress ? (
-              <a className="text-accent underline" href={`https://explorer.solana.com/address/${figure.mintAddress}?cluster=devnet`} target="_blank" rel="noopener noreferrer">
-                {figure.mintAddress.slice(0, 6)}…
-              </a>
-            ) : (
-              "off-chain"
-            )}
-          </dd>
         </dl>
-        {!isDemo && (
-          <a className="font-label text-[12px] text-muted underline hover:text-text" href={`/api/figures/${figure.id}/metadata`} target="_blank" rel="noopener noreferrer">
-            METADATA JSON
-          </a>
-        )}
         {children}
       </div>
     </div>

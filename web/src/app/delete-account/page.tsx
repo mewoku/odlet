@@ -37,7 +37,7 @@ export default function DeleteAccountPage() {
             items={[
               <>Your profile: handle, rating, streak, shards and level progress.</>,
               <>Daily results, boss attempts, friend links, market listings you created and your purchase history.</>,
-              <>A linked wallet address. Figures already minted on the blockchain stay on-chain and cannot be removed by us.</>,
+              <>A linked wallet address. Payments you made on the blockchain stay on-chain and cannot be removed by us.</>,
             ]}
           />
           <p>Deletion is immediate and cannot be undone. Nothing is kept afterwards.</p>

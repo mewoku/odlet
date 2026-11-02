@@ -4,6 +4,14 @@ Product name: **ODLET** (Odlet in running text), formerly RONRIKU; site https://
 
 Updated: 2026-10-29 (see the 2026-10-29 block below; details in `docs/POLISH_PLAN.md`). Plan and contracts: `docs/PLAN_V2.md` (platform) and `docs/PLAN_V3.md` (arcade adventure, music).
 
+## 2026-11-02: NFT minting removed (branch `odlet-polish`)
+
+- Figures are game items only. Legendary costs **5000 shards** (`Economy.FigurePrice`, mirrored in `@ronriku/core`); the shop no longer has a SOL-only path. Migration `20261102000009_legendary_shards` reprices already-published shelves.
+- Web: removed Metaplex Core minting (Legendary-for-SOL, "Mint to wallet", `/api/figures/[id]/metadata`, `devnet-dry-run`, `@metaplex-foundation/*`). The player market is shards-only (SOL listings required a minted figure).
+- Solana stays: wallet linking and devnet SOL raid entry (`/api/purchase/sol`, item `boss-entry` only). The env var keeps the name `MINT_AUTHORITY_SECRET_KEY`; it now only co-signs payment memos.
+- Tests: core 352, web 124 (mint tests removed), web build OK. Unity EditMode tests not run (no editor license on this Windows account).
+- To ship: `supabase db push` (migration 009), rebuild the web image, and redeploy the publisher so new shelves get shard prices.
+
 ## 2026-10-29 (branch `odlet-polish`)
 
 | Area | Status |

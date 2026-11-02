@@ -12,11 +12,11 @@ vi.stubEnv("MINT_AUTHORITY_SECRET_KEY", "");
 
 const { POST, GET } = await import("./purchase/sol/route");
 const prepareRoute = await import("./purchase/sol/prepare/route");
-const metadata = await import("./figures/[id]/metadata/route");
 
 const SIG = "5".repeat(87);
 const BUYER = Keypair.generate().publicKey.toBase58();
-const LEGENDARY = { item: "figure-legendary", signature: SIG, day: 24, slot: 5 };
+const BOSS_ID = "33333333-3333-4333-8333-333333333333";
+const ENTRY = { item: "boss-entry", signature: SIG, bossId: BOSS_ID };
 
 function post(body: unknown, headers: Record<string, string> = {}) {
   return POST(
@@ -42,21 +42,20 @@ describe("POST /api/purchase/sol input validation", () => {
   });
 
   it("rejects oversized streamed bodies without a content-length (M2)", async () => {
-    expect((await post({ ...LEGENDARY, pad: "x".repeat(5000) })).status).toBe(413);
+    expect((await post({ ...ENTRY, pad: "x".repeat(5000) })).status).toBe(413);
   });
 
   it.each([
     ["missing everything", {}],
     ["unknown item", { item: "figure-free", signature: SIG }],
-    ["bad signature charset", { item: "mint-fee", signature: "0OIl".repeat(22), figureId: crypto.randomUUID() }],
-    ["short signature", { item: "mint-fee", signature: "abc", figureId: crypto.randomUUID() }],
-    ["mint-fee without figureId", { item: "mint-fee", signature: SIG }],
-    ["mint-fee with non-uuid figureId", { item: "mint-fee", signature: SIG, figureId: "1; drop table" }],
-    ["legendary without slot", { item: "figure-legendary", signature: SIG, day: 24 }],
-    ["legendary with slot out of range", { ...LEGENDARY, slot: 6 }],
+    ["removed item: figure-legendary (no more minting)", { item: "figure-legendary", signature: SIG, day: 24, slot: 5 }],
+    ["removed item: mint-fee (no more minting)", { item: "mint-fee", signature: SIG, figureId: crypto.randomUUID() }],
+    ["bad signature charset", { ...ENTRY, signature: "0OIl".repeat(22) }],
+    ["short signature", { ...ENTRY, signature: "abc" }],
     ["boss-entry without bossId", { item: "boss-entry", signature: SIG }],
-    ["a client-chosen buyer (C2: buyer comes from the linked wallet only)", { ...LEGENDARY, buyer: BUYER }],
-    ["unexpected field", { ...LEGENDARY, lamports: 1 }],
+    ["boss-entry with non-uuid bossId", { ...ENTRY, bossId: "1; drop table" }],
+    ["a client-chosen buyer (C2: buyer comes from the linked wallet only)", { ...ENTRY, buyer: BUYER }],
+    ["unexpected field", { ...ENTRY, lamports: 1 }],
   ])("400 on %s", async (_name, body) => {
     const res = await post(body);
     expect(res.status).toBe(400);
@@ -64,11 +63,11 @@ describe("POST /api/purchase/sol input validation", () => {
   });
 
   it("401 without a bearer token for a valid body", async () => {
-    expect((await post(LEGENDARY)).status).toBe(401);
+    expect((await post(ENTRY)).status).toBe(401);
   });
 
-  it("503 when the server has no service role / mint authority configured", async () => {
-    expect((await post(LEGENDARY, { authorization: `Bearer ${"x".repeat(40)}` })).status).toBe(503);
+  it("503 when the server has no service role / purchase authority configured", async () => {
+    expect((await post(ENTRY, { authorization: `Bearer ${"x".repeat(40)}` })).status).toBe(503);
   });
 
   it("GET reports purchases disabled without config", async () => {
@@ -77,10 +76,11 @@ describe("POST /api/purchase/sol input validation", () => {
   });
 
   it("GET quote validates its query and is disabled without config", async () => {
-    const res = await GET(new NextRequest("http://localhost/api/purchase/sol?item=figure-legendary&day=24&slot=5"));
+    const res = await GET(new NextRequest(`http://localhost/api/purchase/sol?item=boss-entry&bossId=${BOSS_ID}`));
     expect(res.status).toBe(503);
-    expect(purchaseQuoteSchema.safeParse({ item: "figure-legendary", day: "24", slot: "9" }).success).toBe(false);
-    expect(purchaseQuoteSchema.safeParse({ item: "figure-legendary", day: "24", slot: "5" }).success).toBe(true);
+    expect(purchaseQuoteSchema.safeParse({ item: "figure-legendary", day: "24", slot: "5" }).success).toBe(false);
+    expect(purchaseQuoteSchema.safeParse({ item: "boss-entry", bossId: "x" }).success).toBe(false);
+    expect(purchaseQuoteSchema.safeParse({ item: "boss-entry", bossId: BOSS_ID }).success).toBe(true);
   });
 });
 
@@ -93,7 +93,7 @@ describe("POST /api/purchase/sol/prepare", () => {
         body: typeof body === "string" ? body : JSON.stringify(body),
       }),
     );
-  const ITEM = { item: "figure-legendary", day: 24, slot: 5 };
+  const ITEM = { item: "boss-entry", bossId: BOSS_ID };
 
   it("rejects non-JSON, oversized and malformed bodies", async () => {
     expect((await prep("{}", { "content-type": "text/plain" })).status).toBe(415);
@@ -113,7 +113,8 @@ describe("POST /api/purchase/sol/prepare", () => {
     expect((await prep(ITEM, { authorization: `Bearer ${"x".repeat(40)}` })).status).toBe(503);
   });
   it("schema accepts a well-formed item", () => {
-    expect(purchasePrepareSchema.safeParse({ item: "mint-fee", figureId: crypto.randomUUID() }).success).toBe(true);
+    expect(purchasePrepareSchema.safeParse(ITEM).success).toBe(true);
+    expect(purchasePrepareSchema.safeParse({ item: "mint-fee", figureId: crypto.randomUUID() }).success).toBe(false);
   });
 });
 
@@ -173,28 +174,8 @@ describe("rate limiting (M1)", () => {
   });
 });
 
-describe("GET /api/figures/[id]/metadata", () => {
-  const call = (id: string) => metadata.GET(new NextRequest(`http://localhost/api/figures/${id}/metadata`), { params: Promise.resolve({ id }) });
-
-  it("400 on invalid ids", async () => {
-    for (const id of ["abc", "demo-1-9", "../../etc", "1'or'1"]) expect((await call(id)).status).toBe(400);
-  });
-
-  it("returns Metaplex JSON for a demo figure with traits", async () => {
-    const res = await call("demo-1-3");
-    expect(res.status).toBe(200);
-    const json = await res.json();
-    expect(json.symbol).toBe("ODLET");
-    expect(json.image).toMatch(/\/api\/figures\/demo-1-3\/image$/);
-    const traits = Object.fromEntries((json.attributes as { trait_type: string; value: unknown }[]).map((a) => [a.trait_type, a.value]));
-    expect(traits.Tier).toBe("3x3");
-    expect(traits.Rarity).toBe("Epic");
-    expect(traits.Skin).toBeDefined();
-  });
-});
-
 describe("schema", () => {
-  it("accepts a well-formed legendary purchase", () => {
-    expect(purchaseSolBodySchema.safeParse({ ...LEGENDARY, slot: 4 }).success).toBe(true);
+  it("accepts a well-formed raid entry", () => {
+    expect(purchaseSolBodySchema.safeParse(ENTRY).success).toBe(true);
   });
 });

@@ -43,7 +43,7 @@ On a phone, `adb reverse tcp:54321 tcp:54321` lets the APK reach the local backe
 
 Self-hosting (Docker: Next.js + Caddy + Supabase on one origin, local or a VPS): [deploy/README.md](deploy/README.md).
 
-SOL payments go to `NEXT_PUBLIC_PAYMENT_RECIPIENT`. Each purchase is one transaction the server prepares and partially signs (payment + memo + Metaplex Core mint); the buyer's wallet signs, pays all fees and rent, and sends it. `pnpm --filter web devnet-dry-run` exercises this on devnet.
+SOL payments (raid entry on devnet) go to `NEXT_PUBLIC_PAYMENT_RECIPIENT`. Each payment is one transaction the server prepares and partially signs (payment + memo); the buyer's wallet signs, pays the fee, and sends it. Figures are game items, not NFTs: every rarity, Legendary included, is bought with shards.
 
 ## Tests
 

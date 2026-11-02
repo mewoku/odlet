@@ -16,6 +16,6 @@ export const levelReward = (stars: number, boss: boolean) => (boss ? BOSS_CLEAR 
 /** 100 + min(100, 10·streak). */
 export const dailyReward = (streak: number) => 100 + Math.min(100, 10 * Math.max(0, streak));
 
-/** Shard price by rarity; Legendary is SOL-only (−1). */
+/** Shard price by rarity. */
 export const figurePrice = (rarity: FigureRarity) =>
-  rarity === "Common" ? 300 : rarity === "Rare" ? 800 : rarity === "Epic" ? 2000 : -1;
+  rarity === "Common" ? 300 : rarity === "Rare" ? 800 : rarity === "Epic" ? 2000 : 5000;

@@ -97,8 +97,8 @@ export async function publish(db: SupabaseClient, options: PublishOptions = {}):
   const shelf = days.flatMap((day) => shopShelf(day).map((item, slot) => ({
     day, slot, item_id: item.id, seed: i64(item.seed).toString(), tier: item.size, rarity: item.figure.rarity,
     name: item.figure.name, encoding: item.figure.encode(),
-    price_shards: item.priceShards > 0 ? item.priceShards : null,
-    price_lamports: item.priceShards > 0 ? null : 100_000_000,
+    price_shards: item.priceShards,
+    price_lamports: null,
   })));
   await upsert(db, "shop_shelf", shelf, "day,slot");
   log(`shop_shelf: ${shelf.length} items`);

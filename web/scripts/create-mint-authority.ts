@@ -6,8 +6,9 @@
  *
  * Usage:  pnpm --filter web create-mint-authority [--force] [--recipient <base58>]
  *
- * The mint authority never pays fees or rent (buyers do), so it needs NO SOL. It co-signs prepared
- * purchase transactions and is the update authority of minted Core assets — keep it secret.
+ * The authority never pays fees (buyers do), so it needs NO SOL. It co-signs prepared payment
+ * transactions (raid entry) — keep it secret. The env name keeps "MINT" for compatibility with
+ * deployed configs; nothing is minted any more.
  * Migrates an old TREASURY_SECRET_KEY (reused as the authority) and drops NEXT_PUBLIC_TREASURY_PUBKEY.
  * Prints only public keys.
  */

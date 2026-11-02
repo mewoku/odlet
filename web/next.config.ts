@@ -11,8 +11,6 @@ const nextConfig: NextConfig = {
   output: process.env.NEXT_STANDALONE === "1" ? "standalone" : undefined,
   // Monorepo root (pnpm workspace) — avoids Next guessing from stray lockfiles in the home dir.
   outputFileTracingRoot: path.join(__dirname, ".."),
-  // Keep the Solana/Umi stack as plain Node requires in route handlers.
-  serverExternalPackages: ["@metaplex-foundation/umi-bundle-defaults", "@metaplex-foundation/mpl-core", "@metaplex-foundation/umi"],
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@ronriku/core"],

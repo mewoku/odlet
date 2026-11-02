@@ -34,11 +34,6 @@ export function FigureCard({
       >
         <VoxelViewer encoding={figure.encoding} size={size} interactive={false} rim={c} phase={phase} label={`${figure.name} voxel figure`} />
         <span className="absolute top-2 left-2 font-label text-[12px] text-muted">{figure.tier}×{figure.tier}</span>
-        {figure.mintAddress && (
-          <span className="absolute top-2 right-2 font-label text-[12px] text-frost-accent" title="Minted on devnet" style={{ color: "var(--frost-accent)" }}>
-            NFT
-          </span>
-        )}
       </button>
       <div className="flex flex-col gap-2 border-t-2 border-line p-3">
         <div className="flex items-center justify-between gap-2">

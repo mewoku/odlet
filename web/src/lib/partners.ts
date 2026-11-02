@@ -20,9 +20,8 @@ export const PARTNERS: readonly Partner[] = [];
  * plain monochrome text badges (no third-party logos).
  */
 export const BUILT_WITH: readonly { name: string; role: string }[] = [
-  { name: "Solana", role: "Collectibles on devnet" },
+  { name: "Solana", role: "Wallet and raid payments on devnet" },
   { name: "Solana Mobile", role: "Seeker dApp Store (coming soon)" },
-  { name: "Metaplex", role: "Core NFT standard" },
   { name: "Supabase", role: "Open-source backend stack" },
   { name: "Unity", role: "Game engine" },
 ];

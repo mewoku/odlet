@@ -77,7 +77,7 @@ export default function PrivacyPage() {
         <LegalSection id="public" title="What other players can see">
           <p>
             Your handle, display name, avatar figure, rating and streak appear on leaderboards and your profile page. Friends see each other in their
-            friend lists. Anything you do on the Solana blockchain (wallet address, transactions, figures minted as NFTs) is public by nature of the
+            friend lists. Anything you do on the Solana blockchain (wallet address, transactions) is public by nature of the
             blockchain and cannot be deleted by us.
           </p>
         </LegalSection>
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
               <>Our hosting provider, which runs the server and database (Supabase, self-hosted or hosted).</>,
               <>
                 When you use wallet features on the website: your wallet app and a Solana RPC provider, which receive your transactions and IP address
-                under their own privacy policies. NFTs are minted on Solana <Strong>devnet</Strong>, a test network with no real money.
+                under their own privacy policies. Payments run on Solana <Strong>devnet</Strong>, a test network with no real money.
               </>,
             ]}
           />

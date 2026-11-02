@@ -81,11 +81,8 @@ namespace Ronriku.Tests
             Assert.That(c[0].Id, Is.Not.EqualTo(a[0].Id));
 
             var p = PlayerProfile.CreateNew("buyer123");
-            ShopItem affordable = null;
-            for (int day = 1; affordable == null && day < 400; day++)
-                foreach (ShopItem item in ShopCatalogue.ForDay(day))
-                    if (!item.SolOnly) { affordable = item; break; }
-            Assert.That(affordable, Is.Not.Null);
+            ShopItem affordable = ShopCatalogue.ForDay(1)[0];
+            Assert.That(affordable.PriceShards, Is.GreaterThan(0));
 
             p.shards = affordable.PriceShards - 1;
             Assert.That(ShopCatalogue.Buy(p, affordable), Is.EqualTo(PurchaseResult.InsufficientShards));
@@ -97,10 +94,12 @@ namespace Ronriku.Tests
         }
 
         [Test]
-        public void Legendary_IsSolOnly()
+        public void FigurePrices_RiseWithRarity()
         {
-            Assert.That(Economy.FigurePrice(FigureRarity.Legendary), Is.EqualTo(-1));
-            Assert.That(Economy.FigurePrice(FigureRarity.Common), Is.LessThan(Economy.FigurePrice(FigureRarity.Epic)));
+            Assert.That(Economy.FigurePrice(FigureRarity.Legendary), Is.EqualTo(5000));
+            Assert.That(Economy.FigurePrice(FigureRarity.Common), Is.LessThan(Economy.FigurePrice(FigureRarity.Rare)));
+            Assert.That(Economy.FigurePrice(FigureRarity.Rare), Is.LessThan(Economy.FigurePrice(FigureRarity.Epic)));
+            Assert.That(Economy.FigurePrice(FigureRarity.Epic), Is.LessThan(Economy.FigurePrice(FigureRarity.Legendary)));
         }
 
         [Test]

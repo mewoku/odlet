@@ -7,7 +7,7 @@
  */
 export interface PendingPurchase {
   signature: string;
-  body: { item: "figure-legendary" | "mint-fee" | "boss-entry"; signature: string; figureId?: string; bossId?: string; day?: number; slot?: number };
+  body: { item: "boss-entry"; signature: string; bossId?: string };
   label: string;
   createdAt: number;
   lastError?: string;
@@ -65,8 +65,6 @@ export interface PostResult {
   status: number;
   code?: string;
   error?: string;
-  figureId?: string | null;
-  mintAddress?: string | null;
   attemptId?: string | null;
 }
 

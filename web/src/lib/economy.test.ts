@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MINT_FEE_LAMPORTS, formatPrice, formatShards, formatSol, solPriceLamports, solToLamports } from "./economy";
+import { formatPrice, formatShards, formatSol, solPriceLamports, solToLamports } from "./economy";
 
 describe("price formatting", () => {
   it("formats SOL from lamports without float drift", () => {
@@ -36,9 +36,8 @@ describe("price formatting", () => {
   });
 
   it("uses PLAN §6 SOL prices", () => {
-    expect(solPriceLamports("figure-legendary")).toBe(100_000_000);
+    expect(solPriceLamports("figure-legendary")).toBeNull();
     expect(solPriceLamports("boss-entry")).toBe(10_000_000);
-    expect(solPriceLamports("mint-fee")).toBe(MINT_FEE_LAMPORTS);
     expect(solPriceLamports("figure-common")).toBeNull();
   });
 });
